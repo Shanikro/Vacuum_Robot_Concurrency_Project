@@ -11,12 +11,14 @@ import java.util.concurrent.TimeUnit;
  * No public constructor is allowed except for the empty constructor.
  */
 public class Future<T> {
-	
+	private T result;
+	private boolean isDone;
 	/**
 	 * This should be the the only public constructor in this class.
 	 */
 	public Future() {
-		//TODO: implement this
+		result = null;
+		isDone = false;
 	}
 	
 	/**
