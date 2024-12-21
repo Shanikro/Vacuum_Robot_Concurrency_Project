@@ -16,7 +16,7 @@ public class MessageBusImpl implements MessageBus {
 
 	private final Map<MicroService, Queue<Message>> microServices;
 	private final Map<Class<? extends Broadcast>, List<MicroService>> broadcasts; //לבדוק אם צריך שגם הרשימה הפנימית תיהיה אטומית
-	private final Map<Class<? extends Event<?>>, List<MicroService>> events;
+	private final Map<Class<? extends Event<?>>, Queue<MicroService>> events;
 
 	private final Map<Event<?>, Future<?>> eventFuture = new ConcurrentHashMap<>();
 
@@ -40,7 +40,7 @@ public class MessageBusImpl implements MessageBus {
 				events.get(type).add(m);
 		}
 		else{
-			events.put(type,new LinkedList<>());
+			events.put(type,new ConcurrentLinkedQueue<>());
 			events.get(type).add(m);
 		}
 	}
@@ -64,9 +64,8 @@ public class MessageBusImpl implements MessageBus {
 		if (future != null) {
 			future.resolve(result);
 			eventFuture.remove(e);
-		}
 			}
-
+		}
 	}
 
 	@Override
@@ -81,13 +80,15 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
-		List<MicroService> microServiceList = events.get(e.getClass());
-		synchronized (microServiceList) {
-			if (microServiceList.isEmpty()) { //if nobody subscribe this event
+		Queue<MicroService> microServiceQueue = events.get(e.getClass());
+		synchronized (microServiceQueue) {
+			if (microServiceQueue.isEmpty()) { //if nobody subscribe this event
 				return null;
 			}
 
-			//TODO: לממש את הרובין פשיין כדי לבחור למי מהמיקרוסרוויסים להביא אתת הevent
+			MicroService MS = microServiceQueue.remove(); //Take the next Micro-service according to round-robin fashion.
+			addMsg(MS,e);
+			microServiceQueue.add(MS); //Returns the Micro-service according to round-robin fashion.
 
 			Future<T> future = new Future<>(); //Create future for the event
 			eventFuture.put(e, future);
@@ -114,30 +115,28 @@ public class MessageBusImpl implements MessageBus {
 			}
 		}
 
-		for(List<MicroService> msList : events.values()){ //Remove from Events Map, if in
-			synchronized (msList){
-				msList.remove(m);
+		for(Queue<MicroService> msQueue : events.values()){ //Remove from Events Map, if in
+			synchronized (msQueue){
+				msQueue.remove(m);
 			}
 		}
 	}
 
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		try {
-			while (microServices.get(m).isEmpty()) {
+		while (microServices.get(m).isEmpty()) {
+			try {
 				wait();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 		}
-		catch (InterruptedException e){
-			Thread.currentThread().interrupt();
-		}
-
 		return microServices.get(m).remove();
 	}
 
 	private void addMsg(MicroService m, Message msg) {
 		microServices.get(m).add(msg);
-		notifyAll();
+		notifyAll(); //For who is waiting for message
 	}
 	
 
