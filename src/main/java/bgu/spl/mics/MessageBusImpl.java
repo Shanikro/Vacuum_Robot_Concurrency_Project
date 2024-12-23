@@ -5,9 +5,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * The {@link MessageBusImpl} class is the implementation of the MessageBus interface.
- * Write your implementation here!
- * Only private fields and methods can be added to this class.
+ The class is the implementation of the MessageBus interface.
+ Write your implementation here! Only one public method
+ (in addition to getters which can be public solely for unit testing)
+ may be added to this class All other methods and members you add the class must be private.
  */
 public class MessageBusImpl implements MessageBus {
 
@@ -15,7 +16,7 @@ public class MessageBusImpl implements MessageBus {
 	private static MessageBusImpl instance = null; // field for singleton
 
 	private final Map<MicroService, Queue<Message>> microServices;
-	private final Map<Class<? extends Broadcast>, List<MicroService>> broadcasts; //לבדוק אם צריך שגם הרשימה הפנימית תיהיה אטומית
+	private final Map<Class<? extends Broadcast>, Queue<MicroService>> broadcasts;
 	private final Map<Class<? extends Event<?>>, Queue<MicroService>> events;
 
 	private final Map<Event<?>, Future<?>> eventFuture = new ConcurrentHashMap<>();
@@ -52,29 +53,26 @@ public class MessageBusImpl implements MessageBus {
 				broadcasts.get(type).add(m);
 		}
 		else{
-			broadcasts.put(type,new LinkedList<>());
+			broadcasts.put(type,new ConcurrentLinkedQueue<>());
 			broadcasts.get(type).add(m);
 		}
 	}
 
 	@Override
 	public <T> void complete(Event<T> e, T result) {
-		synchronized (eventFuture) {
-			Future<T> future = (Future<T>) eventFuture.get(e);
+		Future<T> future = (Future<T>) eventFuture.get(e);
 		if (future != null) {
 			future.resolve(result);
 			eventFuture.remove(e);
 			}
 		}
-	}
+
 
 	@Override
 	public void sendBroadcast(Broadcast b) {
-		List<MicroService> microServiceList = broadcasts.get(b);
-		synchronized (microServiceList) {
-			for (MicroService m : microServiceList) {
+		Queue<MicroService> microServiceList = broadcasts.get(b.getClass());
+		for (MicroService m : microServiceList) {
 				addMsg(m, b);
-			}
 		}
 	}
 
@@ -109,7 +107,7 @@ public class MessageBusImpl implements MessageBus {
 
 		microServices.remove(m); //Remove from MicroServices Map
 
-		for(List<MicroService> msList : broadcasts.values()){ //Remove from Broadcasts Map, if in
+		for(Queue<MicroService> msList : broadcasts.values()){ //Remove from Broadcasts Map, if in
 			synchronized (msList){
 				msList.remove(m);
 			}
@@ -124,19 +122,23 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		while (microServices.get(m).isEmpty()) {
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
+		synchronized (microServices) {
+			while (microServices.get(m).isEmpty()) {
+				try {
+					microServices.wait();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
 			}
+			return microServices.get(m).remove();
 		}
-		return microServices.get(m).remove();
 	}
 
 	private void addMsg(MicroService m, Message msg) {
-		microServices.get(m).add(msg);
-		notifyAll(); //For who is waiting for message
+		synchronized (microServices) {
+			microServices.get(m).add(msg);
+			microServices.notifyAll(); //For the next is waiting for message
+		}
 	}
 	
 

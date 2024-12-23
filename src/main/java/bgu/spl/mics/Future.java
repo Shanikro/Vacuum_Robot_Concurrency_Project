@@ -48,7 +48,7 @@ public class Future<T> {
 		if (!isDone) {
 			this.result = result;
 			isDone = true;
-			notifyAll();
+			notify();
 		}
 	}
 	
