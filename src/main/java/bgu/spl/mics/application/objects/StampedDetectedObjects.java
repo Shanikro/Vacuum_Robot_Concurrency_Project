@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -7,6 +8,13 @@ import java.util.List;
  * Includes the time of detection and a list of detected objects.
  */
 public class StampedDetectedObjects {
+
     private int time;
     private List<DetectedObject> detectedObjects;
+
+    public StampedDetectedObjects(int time){
+
+        this.time = time;
+        this.detectedObjects = new LinkedList<>();
+    }
 }

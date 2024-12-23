@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -14,4 +15,12 @@ public class LiDarWorkerTracker {
     private STATUS status;
     private List<TrackedObject> lastTrackedObjects;
 
+    public LiDarWorkerTracker(int id, int frequency){
+
+        this.id = id;
+        this.frequency =  frequency;
+        this.status = STATUS.UP;
+        this.lastTrackedObjects = new LinkedList<>();
+
+    }
 }

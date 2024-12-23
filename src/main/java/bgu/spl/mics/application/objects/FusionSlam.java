@@ -13,8 +13,22 @@ public class FusionSlam {
     private ArrayList<LandMark> landMarks;
     private List<Pose> poses;
 
+    private FusionSlam() {
+        landMarks = new ArrayList<>();
+        poses = new ArrayList<>();
+    }
+
     // Singleton instance holder
     private static class FusionSlamHolder {
-        // TODO: Implement singleton instance logic.
+
+        private static final FusionSlam INSTANCE = new FusionSlam();
     }
+    /**
+     * Returns the single instance of FusionSlam.
+     * @return Singleton instance of FusionSlam
+     */
+    public static FusionSlam getInstance() {
+        return FusionSlamHolder.INSTANCE;
+    }
+
 }

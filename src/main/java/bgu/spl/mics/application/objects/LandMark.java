@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PrimitiveIterator;
 
@@ -12,5 +13,13 @@ public class LandMark {
     private String id;
     private String description;
     private List<CloudPoint> coordinates;
+
+    public LandMark(String id, String description){
+
+        this.id = id;
+        this.description = description;
+        this.coordinates = new LinkedList<>();
+
+    }
 
 }

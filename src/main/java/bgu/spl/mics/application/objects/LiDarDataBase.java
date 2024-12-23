@@ -1,5 +1,8 @@
 package bgu.spl.mics.application.objects;
 
+import bgu.spl.mics.MessageBusImpl;
+
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -8,7 +11,15 @@ import java.util.List;
  */
 public class LiDarDataBase {
 
+    private static LiDarDataBase instance = null;
+
     private List<StampedCloudPoints> cloudPoints;
+    private String filePath;
+
+    private LiDarDataBase(String filePath){
+        this.filePath = filePath;
+        this.cloudPoints = new LinkedList<>();
+    }
 
     /**
      * Returns the singleton instance of LiDarDataBase.
@@ -16,8 +27,11 @@ public class LiDarDataBase {
      * @param filePath The path to the LiDAR data file.
      * @return The singleton instance of LiDarDataBase.
      */
-    public static LiDarDataBase getInstance(String filePath) {
-        // TODO: Implement this
-        return null;
+    public static synchronized LiDarDataBase getInstance(String filePath) {
+        //check if it's the right way
+        if (instance == null) {
+            instance = new LiDarDataBase(filePath);
+        }
+        return instance;
     }
 }

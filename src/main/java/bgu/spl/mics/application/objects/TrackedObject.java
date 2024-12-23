@@ -14,4 +14,13 @@ public class TrackedObject {
     private int time;
     private String description;
     private ArrayList<CloudPoint> coordinates;
+
+    public TrackedObject(String id, int time, String description){
+
+        this.id = id;
+        this.time = time;
+        this.description = description;
+        this.coordinates = new ArrayList<>();
+
+    }
 }

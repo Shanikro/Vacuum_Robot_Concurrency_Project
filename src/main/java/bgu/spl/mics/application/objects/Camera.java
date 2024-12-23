@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -13,5 +14,11 @@ public class Camera {
     private STATUS status;
     private List<StampedDetectedObjects> detectedObjectsList;
 
+    public Camera(int id, int frequency){
+        this.id = id;
+        this.frequency = frequency;
+        this.status = STATUS.UP;
+        this.detectedObjectsList = new LinkedList<>();
 
+    }
 }

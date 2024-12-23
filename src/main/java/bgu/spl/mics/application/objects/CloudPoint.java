@@ -8,4 +8,9 @@ public class CloudPoint {
 
     private int x;
     private int y;
+
+    public CloudPoint(int x, int y){
+        this.x = x;
+        this.y = y;
+    }
 }

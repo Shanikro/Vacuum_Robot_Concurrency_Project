@@ -28,6 +28,7 @@ public class MessageBusImpl implements MessageBus {
 	}
 
 	public static synchronized MessageBusImpl getInstance() {
+		//not sure if this is the right way
 		if (instance == null) {
 			instance = new MessageBusImpl();
 		}

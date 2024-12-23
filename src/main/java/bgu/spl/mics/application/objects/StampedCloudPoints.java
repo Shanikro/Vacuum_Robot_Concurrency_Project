@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -11,4 +12,11 @@ public class StampedCloudPoints {
     private int time;
     private List<List<Double>> cloudPoints;
 
+    public StampedCloudPoints(String id, int time){
+
+        this.id = id;
+        this.time = time;
+        this.cloudPoints = new LinkedList<>();
+
+    }
 }
