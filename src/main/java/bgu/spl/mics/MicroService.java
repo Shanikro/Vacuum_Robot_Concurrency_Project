@@ -27,6 +27,7 @@ public abstract class MicroService implements Runnable {
     private final String name;
     private  MessageBusImpl msgBus;
 
+
     private final Map<Class<? extends Message>, Callback<?>> callbacks = new HashMap<>();
 
 
