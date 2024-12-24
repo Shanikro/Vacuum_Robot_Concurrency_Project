@@ -21,4 +21,6 @@ public class Camera {
         this.detectedObjectsList = new LinkedList<>();
 
     }
+
+
 }
