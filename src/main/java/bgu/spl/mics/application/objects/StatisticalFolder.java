@@ -20,4 +20,29 @@ public class StatisticalFolder {
         this.numLandmarks = numLandmarks;
 
     }
+
+    public int getNumDetectedObjects() {
+        return numDetectedObjects;
+    }
+
+    public int getNumLandmarks() {
+        return numLandmarks;
+    }
+
+    public int getNumTrackedObjects() {
+        return numTrackedObjects;
+    }
+
+    public int getSystemRuntime() {
+        return systemRuntime;
+    }
+    public void addTrackedObjects(int amount){
+        numTrackedObjects += amount;
+    }
+    public void addDetectedObjects(int amount){
+        numDetectedObjects += amount;
+    }
+    public void addLandMarks(int amount){
+        numLandmarks += amount;
+    }
 }

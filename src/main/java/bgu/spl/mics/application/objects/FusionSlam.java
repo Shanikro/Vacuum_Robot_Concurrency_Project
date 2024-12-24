@@ -31,4 +31,19 @@ public class FusionSlam {
         return FusionSlamHolder.INSTANCE;
     }
 
+    public ArrayList<LandMark> getLandMarks(){
+        return landMarks;
+    }
+
+    public List<Pose> getPoses() {
+        return poses;
+    }
+
+    public void addLandMark(LandMark landMark){
+        landMarks.add(landMark);
+    }
+
+    public void addPose(Pose pose){
+        poses.add(pose);
+    }
 }

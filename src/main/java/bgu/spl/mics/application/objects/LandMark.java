@@ -22,4 +22,12 @@ public class LandMark {
 
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public List<CloudPoint> getCoordinates(){
+        return coordinates;
+    }
+
 }

@@ -19,4 +19,13 @@ public class StampedCloudPoints {
         this.cloudPoints = new LinkedList<>();
 
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public List<List<Double>> getCloudPoints() {
+        return cloudPoints;
+    }
+
 }

@@ -23,4 +23,19 @@ public class TrackedObject {
         this.coordinates = new ArrayList<>();
 
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public int getTime() {
+        return time;
+    }
+
+    public ArrayList<CloudPoint> getCoordinates() {
+        return coordinates;
+    }
+    public void addCoordinates(CloudPoint p){
+        coordinates.add(p);
+    }
 }

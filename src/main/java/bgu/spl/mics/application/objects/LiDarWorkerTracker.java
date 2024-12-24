@@ -23,4 +23,27 @@ public class LiDarWorkerTracker {
         this.lastTrackedObjects = new LinkedList<>();
 
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public STATUS getStatus() {
+        return status;
+    }
+
+    public List<TrackedObject> getLastTrackedObjects() {
+        return lastTrackedObjects;
+    }
+
+    public int getFrequency() {
+        return frequency;
+    }
+    public void addTrackedObject(TrackedObject obj){
+        lastTrackedObjects.add(obj);
+    }
+
+    public void setStatus(STATUS status) {
+        this.status = status;
+    }
 }

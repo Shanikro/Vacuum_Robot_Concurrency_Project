@@ -19,4 +19,19 @@ public class GPSIMU {
         this.status = STATUS.UP;
         this.poseList = new LinkedList<>();
     }
+
+    public int getCurrentTick() {
+        return currentTick;
+    }
+
+    public STATUS getStatus() {
+        return status;
+    }
+
+    public List<Pose> getPoseList() {
+        return poseList;
+    }
+     public void addPose(Pose pose){
+        poseList.add(pose);
+     }
 }
