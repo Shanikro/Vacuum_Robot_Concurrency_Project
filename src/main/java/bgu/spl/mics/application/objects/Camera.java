@@ -14,11 +14,38 @@ public class Camera {
     private STATUS status;
     private List<StampedDetectedObjects> detectedObjectsList;
 
-    public Camera(int id, int frequency){
-        this.id = id;
-        this.frequency = frequency;
-        this.status = STATUS.UP;
-        this.detectedObjectsList = new LinkedList<>();
+    public Camera(int id, int frequency) {
 
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public int getFrequency() {
+        return frequency;
+    }
+
+    public StampedDetectedObjects detectObjects(int tick) {
+        for (StampedDetectedObjects o : detectedObjectsList){
+            if(o.getTime() == tick){
+                return o;
+            }
+        }
+        return null;
+    }
+
+    public boolean isUp() {
+        return status == STATUS.UP;
+    }
+
+    public boolean isDown() {
+        return status == STATUS.DOWN;
+    }
+
+    public boolean isError() {
+        return status == STATUS.ERROR;
+    }
+
+
 }

@@ -17,4 +17,12 @@ public class StampedDetectedObjects {
         this.time = time;
         this.detectedObjects = new LinkedList<>();
     }
+
+    public int getTime(){
+        return time;
+    }
+
+    public List<DetectedObject> getDetectedObjects(){
+        return detectedObjects;
+    }
 }

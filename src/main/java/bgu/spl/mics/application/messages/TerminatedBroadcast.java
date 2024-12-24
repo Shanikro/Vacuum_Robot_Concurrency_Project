@@ -9,4 +9,9 @@ public class TerminatedBroadcast implements Broadcast {
     public TerminatedBroadcast(String senderId) {
         this.senderId = senderId;
     }
+
+    public String getSenderId() {
+        return senderId;
+    }
+
 }
