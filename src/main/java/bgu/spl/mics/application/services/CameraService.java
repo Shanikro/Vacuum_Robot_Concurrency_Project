@@ -3,6 +3,7 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.DetectObjectsEvent;
+import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.Camera;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
@@ -55,6 +56,7 @@ public class CameraService extends MicroService {
                     // Send event with detected objects
                     Future<Boolean> futureObject = (Future<Boolean>) sendEvent(new DetectObjectsEvent(getName(),detectedTime, detectedObjects.getDetectedObjects()));
 
+                    //updates in the object
                     if(futureObject.get(tick.getDuration()-tick.getTime(), TimeUnit.MILLISECONDS)) {
                         StatisticalFolder.updateDetectedObjects(camera.getDetectedObjectsCount());
                     }
