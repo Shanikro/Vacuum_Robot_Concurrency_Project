@@ -39,15 +39,17 @@ public class TimeService extends MicroService {
             System.out.println("Sender " + getName() + " started");
             sendBroadcast(new TickBroadcast(getName(),currentTick,duration));
 
-            try {
-                Thread.sleep(tickTime);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                e.printStackTrace();
-            }
+            // I think that we dont need this
+//            try {
+//                Thread.sleep(tickTime);
+//            } catch (InterruptedException e) {
+//                Thread.currentThread().interrupt();
+//                e.printStackTrace();
+//            }
 
             currentTick++;
         }
+        sendBroadcast(new TerminatedBroadcast(getName()));
         terminate();
     }
 }

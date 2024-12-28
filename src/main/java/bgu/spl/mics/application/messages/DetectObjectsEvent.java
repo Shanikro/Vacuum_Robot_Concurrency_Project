@@ -2,15 +2,16 @@ package bgu.spl.mics.application.messages;
 
 import bgu.spl.mics.Event;
 import bgu.spl.mics.application.objects.DetectedObject;
+import bgu.spl.mics.application.objects.StampedDetectedObjects;
 
 import java.util.List;
 
 public class DetectObjectsEvent implements Event<Boolean> {
 
         private final String senderName;
-        private List<DetectedObject> detectedObjects;
+        private StampedDetectedObjects detectedObjects;
 
-        public DetectObjectsEvent(String senderName, int time, List<DetectedObject> detectedObjects){
+        public DetectObjectsEvent(String senderName, StampedDetectedObjects detectedObjects){
                 this.senderName = senderName;
                 this.detectedObjects = detectedObjects;
         }
@@ -19,7 +20,7 @@ public class DetectObjectsEvent implements Event<Boolean> {
                 return senderName;
         }
 
-        public List<DetectedObject> getDetectedObjects() {
+        public StampedDetectedObjects getDetectedObjects() {
                 return detectedObjects;
         }
 

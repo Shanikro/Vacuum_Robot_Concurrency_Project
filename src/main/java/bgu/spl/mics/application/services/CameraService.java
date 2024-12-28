@@ -2,13 +2,11 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.DetectObjectsEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
-import bgu.spl.mics.application.objects.Camera;
-import bgu.spl.mics.application.objects.DetectedObject;
-import bgu.spl.mics.application.objects.StampedDetectedObjects;
-import bgu.spl.mics.application.objects.StatisticalFolder;
+import bgu.spl.mics.application.objects.*;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -26,7 +24,6 @@ public class CameraService extends MicroService {
 
     private final Camera camera;
     private int currentTick;
-    private List<StampedDetectedObjects> list;
 
 
     /**
@@ -38,7 +35,6 @@ public class CameraService extends MicroService {
         super("Camera" + camera.getId());
         this.camera = camera;
         this.currentTick = 0;
-        this.list = new ArrayList<>();
     }
 
     /**
@@ -49,44 +45,55 @@ public class CameraService extends MicroService {
     @Override
     protected void initialize() {
         System.out.println("Camera " + getName() + " started");
+
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
-            currentTick = tick.getTime();
-            list.add(camera.detectObjects(currentTick)); // קודם מוסיפים לשדה את מה שהתגלה בטיק הנוכחי
 
-            //int detectedTime = currentTick - camera.getFrequency();
-            //if(detectedTime == currentTick + camera.getFrequency()){
-            //if (detectedTime>0) {
-            // ואז עוברים על השדה(שמחזיק את כל מה שהתגלה עד הטיק הזה) ומה שבזמן של הטיק המתאים היא שמה ברשימה חדשה שאתה הרשימה הזאת נשלח באיוונט
-            List<DetectedObject> detectedObjects = new LinkedList<>();// = camera.detectObjects(detectedTime);
-            for(StampedDetectedObjects s : list){
+            currentTick = tick.getTime();
+
+            StampedDetectedObjects detectedObjects = null;
+            for(StampedDetectedObjects s : camera.getDetectedObjectsList()){
                 if(s.getTime() == currentTick + camera.getFrequency()) {
-                    detectedObjects = s.getDetectedObjects();
+                    detectedObjects = s;
                     break;
                 }
             }
             // Check if there is objects and the camera is on
-            if (detectedObjects != null && camera.isUp()) {
-                // Send event with detected objects                                                        החלפתי את detectedtime
-                Future<Boolean> futureObject = (Future<Boolean>) sendEvent(new DetectObjectsEvent(getName(),currentTick, detectedObjects));//.getDetectedObjects()));
-                System.out.println("Camera" + getName() + " send detected objects event");
+            if (detectedObjects != null && camera.getStatus()== STATUS.UP) {
+                    // Send event with detected objects
+                    Future<Boolean> futureObject = (Future<Boolean>) sendEvent(new DetectObjectsEvent(getName(), detectedObjects));
+                    System.out.println("Camera" + getName() + " send detected objects event");
+            }
+            //TODO: check what we need to do with the future
+
                 //updates in the object - לפי מה שלוטם אמר העדכון אמור להיות באובייקט עצמו
 //                    if(futureObject.get(tick.getDuration()-tick.getTime(), TimeUnit.MILLISECONDS)) {
 //                        StatisticalFolder.updateDetectedObjects(camera.getDetectedObjectsCount());
 //                    }
-            }
 
-                // Handle errors
-                if (!camera.isUp()) {
-                    System.out.println("Sender " + getName() + " stopped");
-                    sendBroadcast(new TerminatedBroadcast(""+camera.getId()));
-                    terminate();
-                }
+            // Handle errors
+            if (!(camera.getStatus()== STATUS.UP)) {
+                System.out.println("Sender " + getName() + " stopped");
+                sendBroadcast(new TerminatedBroadcast(""+camera.getId()));
+                terminate();
+                // maybe we need another condition that checks if the status is ERROR
+            }
             //}
         });
+        //TODO: need to deal with the fact that the camera need to terminated when it finish to detect objects
 
         // Handle TerminatedBroadcast
-        subscribeBroadcast(TerminatedBroadcast.class, t -> terminate());
+        subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
+            camera.setStatus(STATUS.DOWN);
+            System.out.println("Camera " + camera.getId() + " stopped");
+            terminate();
+        });
+
+        // Handle CrashedBroadcast
+        subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
+            camera.setStatus(STATUS.ERROR);
+
+        });
     }
 
 }

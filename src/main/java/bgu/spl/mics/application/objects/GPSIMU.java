@@ -34,4 +34,8 @@ public class GPSIMU {
      public void addPose(Pose pose){
         poseList.add(pose);
      }
+
+    public void setStatus(STATUS status) {
+        this.status = status;
+    }
 }

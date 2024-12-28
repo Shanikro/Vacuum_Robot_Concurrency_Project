@@ -2,12 +2,8 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.messages.TerminatedBroadcast;
-import bgu.spl.mics.application.messages.TickBroadcast;
-import bgu.spl.mics.application.messages.TrackedObjectsEvent;
-import bgu.spl.mics.application.objects.LiDarWorkerTracker;
-import bgu.spl.mics.application.objects.STATUS;
-import bgu.spl.mics.application.objects.TrackedObject;
+import bgu.spl.mics.application.messages.*;
+import bgu.spl.mics.application.objects.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -36,7 +32,6 @@ public class LiDarService extends MicroService {
         this.LiDar = LiDarWorkerTracker;
         this.trackedObjects = new LinkedList<>();
         this.currentTick = 0;
-        // TODO Implement this
     }
 
     /**
@@ -47,17 +42,48 @@ public class LiDarService extends MicroService {
     @Override
     protected void initialize() {
         System.out.println("LiDar " + getName() + " started");
+
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
 
             currentTick = tick.getTime();
-            for(TrackedObject t : LiDar.getLastTrackedObjects()) {
-                if(t.getTime() == currentTick)//not sure if this is the term
-                    trackedObjects.add(t);
+//            for(TrackedObject t : LiDar.getLastTrackedObjects()) {
+//                if(t.getTime() == currentTick + LiDar.getFrequency())//not sure if this is the term
+//                    trackedObjects.add(t);
+//            }
+//            if(trackedObjects != null && LiDar.getStatus()== STATUS.UP) {
+//                Future<Boolean> futureObject = sendEvent(new TrackedObjectsEvent(getName(), trackedObjects));
+//                System.out.println("LiDar" + "sent tracked object event");
+//            }
+//
+//            // Handle errors
+//            if (!(LiDar.getStatus() == STATUS.UP)) {
+//                System.out.println("Sender " + getName() + " stopped");
+//                sendBroadcast(new TerminatedBroadcast(""+LiDar.getId()));
+//                terminate();
+//            }
+
+        });
+
+        // Handle Detect Objects Event
+        subscribeEvent(DetectObjectsEvent.class, event ->{
+
+            //TODO: need to understand how to take the coordinates from the database
+            StampedDetectedObjects s = event.getDetectedObjects();
+
+            for(DetectedObject a : s.getDetectedObjects()){
+                trackedObjects.add( new TrackedObject(a.getId(),currentTick, a.getDescription()));
+                //TODO: i think we need to add to the constructor also coordinates and then take them from the database
             }
-            if(trackedObjects != null && LiDar.getStatus()== STATUS.UP) {
-                Future<Boolean> futureObject = sendEvent(new TrackedObjectsEvent(getName(), trackedObjects));
-                System.out.println("LiDar" + "sent traked object event");
+            List<TrackedObject> currentTracked = new LinkedList<>();
+            for(TrackedObject t : trackedObjects){
+                if(t.getTime() == currentTick +LiDar.getFrequency())
+                    currentTracked.add(t);
+            }
+
+            if(!(trackedObjects.isEmpty()) && LiDar.getStatus()== STATUS.UP) {
+                Future<Boolean> futureObject = sendEvent(new TrackedObjectsEvent(getName(), currentTracked));
+                System.out.println("LiDar" +LiDar.getId() + "sent traked object event");
             }
 
             // Handle errors
@@ -69,7 +95,16 @@ public class LiDarService extends MicroService {
 
         });
 
-        // Handle TerminatedBroadcast
-        subscribeBroadcast(TerminatedBroadcast.class, t -> terminate());
+        // Handle Terminated Broadcast
+        subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
+            LiDar.setStatus(STATUS.DOWN);
+            terminate();
+        });
+
+        // Handle Crashed Broadcast
+        subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
+            LiDar.setStatus(STATUS.ERROR);
+        });
+
     }
 }

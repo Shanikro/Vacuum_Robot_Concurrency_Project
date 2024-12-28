@@ -1,5 +1,8 @@
 package bgu.spl.mics.application.objects;
 
+import bgu.spl.mics.Event;
+import bgu.spl.mics.application.messages.TrackedObjectsEvent;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,12 +13,14 @@ import java.util.List;
  */
 public class FusionSlam {
 
-    private ArrayList<LandMark> landMarks;
+    private List<LandMark> landMarks;
     private List<Pose> poses;
+    private List<TrackedObjectsEvent> trackedObjects;
 
     private FusionSlam() {
         landMarks = new ArrayList<>();
         poses = new ArrayList<>();
+        trackedObjects = new ArrayList<>();
     }
 
     // Singleton instance holder
@@ -31,12 +36,23 @@ public class FusionSlam {
         return FusionSlamHolder.INSTANCE;
     }
 
-    public ArrayList<LandMark> getLandMarks(){
+    public List<LandMark> getLandMarks(){
         return landMarks;
     }
 
-    public List<Pose> getPoses() {
-        return poses;
+    public List<TrackedObjectsEvent> getTrackedObjects(){
+        return trackedObjects;
+    }
+
+    public Pose getPoseByTime(int time) {
+        Pose output = null;
+        for (Pose p : poses){
+            if(p.getTime() == time) {
+                output = p;
+                break;
+            }
+        }
+        return output;
     }
 
     public void addLandMark(LandMark landMark){
@@ -45,5 +61,20 @@ public class FusionSlam {
 
     public void addPose(Pose pose){
         poses.add(pose);
+    }
+
+    public TrackedObjectsEvent getMatchingEvent(int time){
+        TrackedObjectsEvent output = null;
+        for (TrackedObjectsEvent e : trackedObjects) {
+                if (e.getTrackedObjects().get(0).getTime() == time ) {
+                    output = e;
+                    break;
+                }
+        }
+        return output;
+    }
+
+    public void calculate(TrackedObjectsEvent trackedObjects, Pose pose) {
+
     }
 }

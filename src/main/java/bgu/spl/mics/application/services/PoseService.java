@@ -2,10 +2,7 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.messages.PoseEvent;
-import bgu.spl.mics.application.messages.TerminatedBroadcast;
-import bgu.spl.mics.application.messages.TickBroadcast;
-import bgu.spl.mics.application.messages.TrackedObjectsEvent;
+import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.GPSIMU;
 import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.STATUS;
@@ -39,6 +36,7 @@ public class PoseService extends MicroService {
     @Override
     protected void initialize() {
         System.out.println("Pose " + getName() + " started");
+
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
 
@@ -63,7 +61,11 @@ public class PoseService extends MicroService {
             }
 
         });
-        // Handle TerminatedBroadcast
-        subscribeBroadcast(TerminatedBroadcast.class, t -> terminate());
+
+        // Handle CrashedBroadcast
+        subscribeBroadcast(CrashedBroadcast.class, tick ->{
+            location.setStatus(STATUS.ERROR);
+        });
+
     }
 }

@@ -26,26 +26,24 @@ public class Camera {
         return frequency;
     }
 
-    public StampedDetectedObjects detectObjects(int tick) {
+    public List<StampedDetectedObjects> detectObjects(int tick) {
+        List<StampedDetectedObjects> output = new LinkedList<>();
         for (StampedDetectedObjects o : detectedObjectsList){
             if(o.getTime() == tick){
-                return o;
+                output.add(o);
             }
         }
-        return null;
+        return output;
+    }
+    public List<StampedDetectedObjects> getDetectedObjectsList(){
+        return detectedObjectsList;
     }
 
-    public boolean isUp() {
-        return status == STATUS.UP;
+    public STATUS getStatus() {
+        return status;
     }
 
-    public boolean isDown() {
-        return status == STATUS.DOWN;
+    public void setStatus(STATUS status) {
+        this.status = status;
     }
-
-    public boolean isError() {
-        return status == STATUS.ERROR;
-    }
-
-
 }

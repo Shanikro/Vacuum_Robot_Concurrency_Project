@@ -1,14 +1,14 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.messages.PoseEvent;
-import bgu.spl.mics.application.messages.TerminatedBroadcast;
-import bgu.spl.mics.application.messages.TickBroadcast;
-import bgu.spl.mics.application.messages.TrackedObjectsEvent;
+import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.Pose;
-import bgu.spl.mics.application.objects.STATUS;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import static java.lang.reflect.Array.get;
 
 /**
  * FusionSlamService integrates data from multiple sensors to build and update
@@ -40,14 +40,35 @@ public class FusionSlamService extends MicroService {
     protected void initialize() {
         //check what it needs to do in every broadcast/event
         subscribeBroadcast(TickBroadcast.class, tick -> {
+            currentTick = tick.getTime();
+        });
+
+        subscribeEvent(TrackedObjectsEvent.class, event ->{
+           fusionSlam.getTrackedObjects().add(event);
+            //fine the time of the event
+            int time = event.getTrackedObjects().get(0).getTime();
+           //search for the corresponding pose
+            Pose pose = fusionSlam.getPoseByTime(time);
+            //if it finds he uploads the map
+            if(pose != null)
+                fusionSlam.calculate(event , pose);
 
         });
 
-        subscribeEvent(TrackedObjectsEvent.class,tick ->{
+        subscribeEvent(PoseEvent.class, event ->{
+            fusionSlam.addPose(event.getPose());
+            //poses.add(event);
+            //search for the corresponding object
+            TrackedObjectsEvent trackedObjectsEvent = fusionSlam.getMatchingEvent(event.getPose().getTime());
+            //if it finds he uploads the map
+            if(trackedObjectsEvent != null)
+                fusionSlam.calculate(trackedObjectsEvent, event.getPose());
 
         });
 
-        subscribeEvent(PoseEvent.class,tick ->{
+        subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> terminate());
+
+        subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
 
         });
     }

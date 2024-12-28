@@ -24,6 +24,10 @@ public class StampedCloudPoints {
         return id;
     }
 
+    public int getTime() {
+        return time;
+    }
+
     public List<List<Double>> getCloudPoints() {
         return cloudPoints;
     }
