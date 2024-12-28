@@ -1,13 +1,23 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.PoseEvent;
+import bgu.spl.mics.application.messages.TerminatedBroadcast;
+import bgu.spl.mics.application.messages.TickBroadcast;
+import bgu.spl.mics.application.messages.TrackedObjectsEvent;
 import bgu.spl.mics.application.objects.GPSIMU;
+import bgu.spl.mics.application.objects.Pose;
+import bgu.spl.mics.application.objects.STATUS;
+import bgu.spl.mics.application.objects.TrackedObject;
 
 /**
  * PoseService is responsible for maintaining the robot's current pose (position and orientation)
  * and broadcasting PoseEvents at every tick.
  */
 public class PoseService extends MicroService {
+    private int currentTick;
+    private GPSIMU location;
 
     /**
      * Constructor for PoseService.
@@ -16,6 +26,9 @@ public class PoseService extends MicroService {
      */
     public PoseService(GPSIMU gpsimu) {
         super("Change_This_Name");
+        this.location = gpsimu;
+        this.currentTick = 0;
+
         // TODO Implement this
     }
 
@@ -25,6 +38,32 @@ public class PoseService extends MicroService {
      */
     @Override
     protected void initialize() {
-        // TODO Implement this
+        System.out.println("Pose " + getName() + " started");
+        // Handle TickBroadcast
+        subscribeBroadcast(TickBroadcast.class, tick -> {
+
+            currentTick = tick.getTime();
+            Pose currentPose = null;
+            for(Pose p : location.getPoseList()){
+                if(p.getTime() == currentTick){
+                    currentPose = p;
+                    break;
+                }
+            }
+            if(currentPose != null && location.getStatus()== STATUS.UP) {
+                Future<Boolean> futureObject = sendEvent(new PoseEvent(getName(), currentPose));
+                System.out.println("gps" + getName() + "sent pose event");
+            }
+
+            // Handle errors
+            if (!(location.getStatus() == STATUS.UP)) {
+                System.out.println("Sender " + getName() + " stopped");
+                sendBroadcast(new TerminatedBroadcast(""));//check what to put here
+                terminate();
+            }
+
+        });
+        // Handle TerminatedBroadcast
+        subscribeBroadcast(TerminatedBroadcast.class, t -> terminate());
     }
 }

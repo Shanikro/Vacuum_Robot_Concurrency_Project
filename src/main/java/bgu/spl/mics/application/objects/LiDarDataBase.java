@@ -28,7 +28,7 @@ public class LiDarDataBase {
      * @return The singleton instance of LiDarDataBase.
      */
     public static synchronized LiDarDataBase getInstance(String filePath) {
-        //check if it's the right way
+        //check if it's the right way!!!
         if (instance == null) {
             instance = new LiDarDataBase(filePath);
         }

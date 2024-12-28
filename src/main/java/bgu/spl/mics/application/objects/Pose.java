@@ -19,4 +19,8 @@ public class Pose {
         this.time = time;
 
     }
+
+    public int getTime() {
+        return time;
+    }
 }

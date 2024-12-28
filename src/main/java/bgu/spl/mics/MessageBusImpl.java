@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class MessageBusImpl implements MessageBus {
 
 
-	private static MessageBusImpl instance = null; // field for singleton
+	//private static MessageBusImpl instance = null; // field for singleton
 
 	private final Map<MicroService, Queue<Message>> microServices;
 	private final Map<Class<? extends Broadcast>, Queue<MicroService>> broadcasts;
@@ -26,13 +26,17 @@ public class MessageBusImpl implements MessageBus {
 		broadcasts = new ConcurrentHashMap<>();
 		events = new ConcurrentHashMap<>();
 	}
+	private static class singeltoneHolder{
+		private static MessageBusImpl instance = new MessageBusImpl();
+	}
 
 	public static synchronized MessageBusImpl getInstance() {
-		//not sure if this is the right way
-		if (instance == null) {
-			instance = new MessageBusImpl();
-		}
-		return instance;
+		//not the right way: two threads can initiate two instances
+//		if (instance == null) {
+//			instance = new MessageBusImpl();
+//		}
+//		return instance;
+		return singeltoneHolder.instance;
 	}
 
 	@Override
