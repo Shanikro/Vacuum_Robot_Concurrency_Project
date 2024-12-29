@@ -49,30 +49,6 @@ public class LiDarService extends MicroService {
         // Handle Detect Objects Event
         subscribeEvent(DetectObjectsEvent.class, detectObjectsevent ->{
 
-            //TODO: need to understand how to take the coordinates from the database
-            StampedDetectedObjects s = detectObjectsevent.getDetectedObjects();
-
-            for(DetectedObject a : s.getDetectedObjects()){
-                trackedObjects.add( new TrackedObject(a.getId(),currentTick, a.getDescription()));
-                //TODO: i think we need to add to the constructor also coordinates and then take them from the database
-            }
-            List<TrackedObject> currentTracked = new LinkedList<>();
-            for(TrackedObject t : trackedObjects){
-                if(t.getTime() == currentTick +LiDar.getFrequency())
-                    currentTracked.add(t);
-            }
-
-            if(!(trackedObjects.isEmpty()) && LiDar.getStatus()== STATUS.UP) {
-                Future<Boolean> futureObject = sendEvent(new TrackedObjectsEvent(getName(), currentTracked));
-                System.out.println("LiDar" +LiDar.getId() + "sent traked object event");
-            }
-
-            // Handle errors
-            if (!(LiDar.getStatus() == STATUS.UP)) {
-                System.out.println("Sender " + getName() + " stopped");
-                sendBroadcast(new TerminatedBroadcast(""+LiDar.getId()));
-                terminate();
-            }
 
         });
 
