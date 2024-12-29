@@ -35,7 +35,7 @@ public class FusionSlamService extends MicroService {
         super("Fusion Slam Service");
         this.fusionSlam = fusionSlam;
         this.currentTick = 0;
-        pendingTrackedObjects = new ConcurrentHashMap<>();
+        this.pendingTrackedObjects = new ConcurrentHashMap<>();
     }
 
     /**
@@ -55,11 +55,17 @@ public class FusionSlamService extends MicroService {
         subscribeEvent(TrackedObjectsEvent.class, trackedObjectsEvent ->{
             int time = trackedObjectsEvent.getTrackedObjects().get(0).getTime(); //Check the time that tracked
 
-            if (time > currentTick){
-                pendingTrackedObjects.put(time, trackedObject);
+            //In case the corresponding Pose has not appeared yet.
+            if (time > currentTick){ //TODO לבדוק אם זה אומר שבוודאות הגיע כבר הפוס
+                pendingTrackedObjects.put(time, trackedObjectsEvent.getTrackedObjects()); //Save the objects for later
             }
 
-
+            else{
+                Pose correspondingPose = fusionSlam.getPoseByTime(time);
+                for (TrackedObject object : trackedObjectsEvent.getTrackedObjects()) {
+                    fusionSlam.calculate(object, correspondingPose);
+                }
+            }
 
         });
 

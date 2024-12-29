@@ -48,7 +48,7 @@ public class PoseService extends MicroService {
                 }
             }
             if(currentPose != null && location.getStatus()== STATUS.UP) {
-                sendEvent(new PoseEvent(getName(), currentPose));
+                sendEvent(new PoseEvent(getName(), currentPose)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
                 System.out.println("gps" + getName() + "sent pose event");
             }
 
