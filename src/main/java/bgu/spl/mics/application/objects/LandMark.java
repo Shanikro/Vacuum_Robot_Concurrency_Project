@@ -14,12 +14,11 @@ public class LandMark {
     private String description;
     private List<CloudPoint> coordinates;
 
-    public LandMark(String id, String description){
+    public LandMark(String id, String description, List<CloudPoint> coordinates){
 
         this.id = id;
         this.description = description;
-        this.coordinates = new LinkedList<>();
-
+        this.coordinates = coordinates;
     }
 
     public String getId() {
@@ -30,4 +29,11 @@ public class LandMark {
         return coordinates;
     }
 
+    public void addCoordinate(CloudPoint cloudPoint){
+        coordinates.add(cloudPoint);
+    }
+
+    public void setCoordinates(List<CloudPoint> list) {
+        coordinates = list;
+    }
 }
