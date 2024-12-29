@@ -49,12 +49,24 @@ public class LiDarService extends MicroService {
         // Handle Detect Objects Event
         subscribeEvent(DetectObjectsEvent.class, detectObjectsevent ->{
 
+            StampedDetectedObjects stampedDetectedObjects = detectObjectsevent.getDetectedObjects(); //Include list of detected objects
+
+
+            for (DetectedObject detectedObject : stampedDetectedObjects.getDetectedObjects()){
+
+                List<CloudPoint> listCoordinates = new LinkedList<>();//ליצור לפי הDB ליסט של קלאודפוינט לכל אוביקט TODO
+
+                TrackedObject newTrackedObj = new TrackedObject(detectedObject.getId(),currentTick, detectedObject.getDescription(), listCoordinates);
+                LiDar.addTrackedObject(newTrackedObj);
+            }
+
+            sendEvent(new TrackedObjectsEvent(getName(), LiDar.getLastTrackedObjects())); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
+            System.out.println(getName() + "sent Tracked Objects event");
 
         });
 
         // Handle Terminated Broadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
-            LiDar.setStatus(STATUS.DOWN);
             System.out.println("Lidar " + LiDar.getId() + " stopped");
             terminate();
         });
