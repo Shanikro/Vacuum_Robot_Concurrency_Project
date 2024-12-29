@@ -63,7 +63,6 @@ public class FusionSlam {
     public void updateMap(TrackedObject trackedObject, Pose pose) {
         List<CloudPoint> updatedPoints = new LinkedList<>();
 
-    public void updateMap(TrackedObject trackedObject, Pose pose) {
 
         for (CloudPoint point : trackedObject.getCoordinates()){
             updatedPoints.add(calculatePoint(point, pose));
