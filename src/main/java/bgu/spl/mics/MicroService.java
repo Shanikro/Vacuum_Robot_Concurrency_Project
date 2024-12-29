@@ -160,8 +160,8 @@ public abstract class MicroService implements Runnable {
     @Override
     public final void run() {
 
-        msgBus.register(this);
-        initialize(); //a.Register b.subscribe msg c.initialize
+        msgBus.register(this); //Register myself to the messageBus
+        initialize(); //Subscribe required message and Initialize
 
         //Start the message loop
         while (!terminated) {
@@ -169,7 +169,7 @@ public abstract class MicroService implements Runnable {
                 Message message = msgBus.awaitMessage(this); //Fetches message from message queue.
                 Callback callback = callbacks.get(message.getClass());
 
-                if (callback != null) { //Executes the corresponding callback.
+                if (callback != null) { //Executes the corresponding callback
                     callback.call(message);
                 }
 

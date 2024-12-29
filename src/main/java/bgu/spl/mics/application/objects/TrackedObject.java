@@ -13,15 +13,15 @@ public class TrackedObject {
     private String id;
     private int time;
     private String description;
-    private ArrayList<CloudPoint> coordinates;
+    private CloudPoint coordinates;
 
     //TODO: change the constructor that will get coordinates
-    public TrackedObject(String id, int time, String description){
+    public TrackedObject(String id, int time, String description,CloudPoint coordinates){
 
         this.id = id;
         this.time = time;
         this.description = description;
-        this.coordinates = new ArrayList<>();
+        this.coordinates = coordinates;
 
     }
 
@@ -33,10 +33,8 @@ public class TrackedObject {
         return time;
     }
 
-    public ArrayList<CloudPoint> getCoordinates() {
+    public CloudPoint getCoordinates() {
         return coordinates;
     }
-    public void addCoordinates(CloudPoint p){
-        coordinates.add(p);
-    }
+
 }

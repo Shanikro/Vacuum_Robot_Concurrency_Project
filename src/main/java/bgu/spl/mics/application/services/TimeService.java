@@ -23,7 +23,7 @@ public class TimeService extends MicroService {
      * @param Duration  The total number of ticks before the service terminates.
      */
     public TimeService(int TickTime, int Duration) {
-        super("TimeService");
+        super("Time Service");
         this.tickTime = TickTime;
         this.duration = Duration;
         currentTick = 0;
@@ -35,18 +35,9 @@ public class TimeService extends MicroService {
      */
     @Override
     protected void initialize() {
-        while(currentTick<=duration) {
+        while(currentTick<=duration) { //While we haven't reached duration time, we will send TickBroadcast to all listeners.
             System.out.println("Sender " + getName() + " started");
             sendBroadcast(new TickBroadcast(getName(),currentTick,duration));
-
-            // I think that we dont need this
-//            try {
-//                Thread.sleep(tickTime);
-//            } catch (InterruptedException e) {
-//                Thread.currentThread().interrupt();
-//                e.printStackTrace();
-//            }
-
             currentTick++;
         }
         sendBroadcast(new TerminatedBroadcast(getName()));

@@ -31,7 +31,8 @@ public class GPSIMU {
     public List<Pose> getPoseList() {
         return poseList;
     }
-     public void addPose(Pose pose){
+
+    public void addPose(Pose pose){
         poseList.add(pose);
      }
 

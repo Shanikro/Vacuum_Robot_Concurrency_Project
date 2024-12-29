@@ -15,17 +15,15 @@ public class FusionSlam {
 
     private List<LandMark> landMarks;
     private List<Pose> poses;
-    private List<TrackedObjectsEvent> trackedObjects;
 
+    //Private constructor
     private FusionSlam() {
         landMarks = new ArrayList<>();
         poses = new ArrayList<>();
-        trackedObjects = new ArrayList<>();
     }
 
-    // Singleton instance holder
+    //Internal static class that holds the Singleton
     private static class FusionSlamHolder {
-
         private static final FusionSlam INSTANCE = new FusionSlam();
     }
     /**
@@ -36,6 +34,8 @@ public class FusionSlam {
         return FusionSlamHolder.INSTANCE;
     }
 
+
+    //Getters
     public List<LandMark> getLandMarks(){
         return landMarks;
     }
@@ -55,26 +55,17 @@ public class FusionSlam {
         return output;
     }
 
+
+    //Methods
     public void addLandMark(LandMark landMark){
         landMarks.add(landMark);
-    }
+    } //TODO:לבדוק אם לא קיים כבר
 
     public void addPose(Pose pose){
         poses.add(pose);
     }
 
-    public TrackedObjectsEvent getMatchingEvent(int time){
-        TrackedObjectsEvent output = null;
-        for (TrackedObjectsEvent e : trackedObjects) {
-                if (e.getTrackedObjects().get(0).getTime() == time ) {
-                    output = e;
-                    break;
-                }
-        }
-        return output;
-    }
-
-    public void calculate(TrackedObjectsEvent trackedObjects, Pose pose) {
+    public void calculate(TrackedObject trackedObject, Pose pose) { //TODO
 
     }
 }

@@ -46,7 +46,7 @@ public class CameraService extends MicroService {
     protected void initialize() {
         System.out.println("Camera " + getName() + " started");
 
-        // Handle TickBroadcast
+        //Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
 
             currentTick = tick.getTime();

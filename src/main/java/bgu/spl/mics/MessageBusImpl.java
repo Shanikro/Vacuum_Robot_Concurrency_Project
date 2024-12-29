@@ -12,31 +12,26 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class MessageBusImpl implements MessageBus {
 
-
-	//private static MessageBusImpl instance = null; // field for singleton
-
 	private final Map<MicroService, Queue<Message>> microServices;
 	private final Map<Class<? extends Broadcast>, Queue<MicroService>> broadcasts;
 	private final Map<Class<? extends Event<?>>, Queue<MicroService>> events;
 
 	private final Map<Event<?>, Future<?>> eventFuture = new ConcurrentHashMap<>();
 
+	//Private constructor
 	private MessageBusImpl() {
 		microServices = new ConcurrentHashMap<>();
 		broadcasts = new ConcurrentHashMap<>();
 		events = new ConcurrentHashMap<>();
 	}
-	private static class singeltoneHolder{
-		private static MessageBusImpl instance = new MessageBusImpl();
+
+	//Internal static class that holds the Singleton
+	private static class singletonHolder {
+		private static final MessageBusImpl INSTANCE = new MessageBusImpl();
 	}
 
-	public static synchronized MessageBusImpl getInstance() {
-		//not the right way: two threads can initiate two instances
-//		if (instance == null) {
-//			instance = new MessageBusImpl();
-//		}
-//		return instance;
-		return singeltoneHolder.instance;
+	public static MessageBusImpl getInstance() {
+		return singletonHolder.INSTANCE;
 	}
 
 	@Override

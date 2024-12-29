@@ -22,11 +22,10 @@ public class PoseService extends MicroService {
      * @param gpsimu The GPSIMU object that provides the robot's pose data.
      */
     public PoseService(GPSIMU gpsimu) {
-        super("Change_This_Name");
+        super("Pose Service");
         this.location = gpsimu;
         this.currentTick = 0;
 
-        // TODO Implement this
     }
 
     /**
@@ -49,22 +48,22 @@ public class PoseService extends MicroService {
                 }
             }
             if(currentPose != null && location.getStatus()== STATUS.UP) {
-                Future<Boolean> futureObject = sendEvent(new PoseEvent(getName(), currentPose));
+                sendEvent(new PoseEvent(getName(), currentPose));
                 System.out.println("gps" + getName() + "sent pose event");
             }
 
             // Handle errors
             if (!(location.getStatus() == STATUS.UP)) {
                 System.out.println("Sender " + getName() + " stopped");
-                sendBroadcast(new TerminatedBroadcast(""));//check what to put here
+                sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
             }
 
         });
 
         // Handle CrashedBroadcast
-        subscribeBroadcast(CrashedBroadcast.class, tick ->{
-            location.setStatus(STATUS.ERROR);
+        subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
+           terminate();
         });
 
     }

@@ -1,12 +1,17 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.Message;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.Pose;
+import bgu.spl.mics.application.objects.TrackedObject;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.reflect.Array.get;
 
@@ -20,15 +25,17 @@ import static java.lang.reflect.Array.get;
 public class FusionSlamService extends MicroService {
     private FusionSlam fusionSlam;
     private int currentTick;
+    private final Map<Integer, List<TrackedObject>> pendingTrackedObjects; //A data structure that temporarily stores objects whose corresponding Pose not arrived yet.
     /**
      * Constructor for FusionSlamService.
      *
      * @param fusionSlam The FusionSLAM object responsible for managing the global map.
      */
     public FusionSlamService(FusionSlam fusionSlam) {
-        super("Change_This_Name");
+        super("Fusion Slam Service");
         this.fusionSlam = fusionSlam;
         this.currentTick = 0;
+        pendingTrackedObjects = new ConcurrentHashMap<>();
     }
 
     /**
@@ -38,38 +45,46 @@ public class FusionSlamService extends MicroService {
      */
     @Override
     protected void initialize() {
-        //check what it needs to do in every broadcast/event
+
+        //Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
             currentTick = tick.getTime();
         });
 
-        subscribeEvent(TrackedObjectsEvent.class, event ->{
-           fusionSlam.getTrackedObjects().add(event);
-            //fine the time of the event
-            int time = event.getTrackedObjects().get(0).getTime();
-           //search for the corresponding pose
-            Pose pose = fusionSlam.getPoseByTime(time);
-            //if it finds he uploads the map
-            if(pose != null)
-                fusionSlam.calculate(event , pose);
+        //Handle TrackedObjectsEvent
+        subscribeEvent(TrackedObjectsEvent.class, trackedObjectsEvent ->{
+            int time = trackedObjectsEvent.getTrackedObjects().get(0).getTime(); //Check the time that tracked
+
+            if (time > currentTick){
+                pendingTrackedObjects.put(time, trackedObject);
+            }
+
+
 
         });
 
-        subscribeEvent(PoseEvent.class, event ->{
-            fusionSlam.addPose(event.getPose());
-            //poses.add(event);
-            //search for the corresponding object
-            TrackedObjectsEvent trackedObjectsEvent = fusionSlam.getMatchingEvent(event.getPose().getTime());
-            //if it finds he uploads the map
-            if(trackedObjectsEvent != null)
-                fusionSlam.calculate(trackedObjectsEvent, event.getPose());
+        //Handle PoseEvent
+        subscribeEvent(PoseEvent.class, pose -> {
+            int time = pose.getPose().getTime(); //Pose time
+            fusionSlam.addPose(pose.getPose()); //Add Pose to the pose list of FusionSlam
 
+            //Check if there is TrackedObjects that waiting for the pose
+            if (pendingTrackedObjects.containsKey(time)) {
+                List<TrackedObject> matchedTrackedObjects = pendingTrackedObjects.remove(time); //Remove them
+                for (TrackedObject object : matchedTrackedObjects) { //TODO Calculate the global pose LandMarkלבדוק איפה האחראיות להוסיף ל
+                    fusionSlam.calculate(object, pose.getPose());
+                }
+            }
         });
 
-        subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> terminate());
+        //Handle TerminatedBroadcast
+        subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
+            terminate();
+        });
 
+        //Handle CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
-
+            terminate();
         });
     }
 }
