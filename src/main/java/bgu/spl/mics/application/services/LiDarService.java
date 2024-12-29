@@ -5,6 +5,7 @@ import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.*;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -44,6 +45,18 @@ public class LiDarService extends MicroService {
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
             currentTick = tick.getTime();
+
+            List<TrackedObject> trackedObjectsToSlam = new LinkedList<>();
+            for(TrackedObject o : LiDar.getLastTrackedObjects()){
+                if(o.getTime() == currentTick - LiDar.getFrequency()) {
+                    trackedObjectsToSlam.add(o); //Add this object to the list used by Fusion Slam
+                    LiDar.getLastTrackedObjects().remove(o); //Remove the object from the last tracked object list of the lidar
+                }
+            }
+
+            sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
+            System.out.println(getName() + "sent Tracked Objects event");
+
         });
 
         // Handle Detect Objects Event
@@ -51,17 +64,12 @@ public class LiDarService extends MicroService {
 
             StampedDetectedObjects stampedDetectedObjects = detectObjectsevent.getDetectedObjects(); //Include list of detected objects
 
-
             for (DetectedObject detectedObject : stampedDetectedObjects.getDetectedObjects()){
-
-                List<CloudPoint> listCoordinates = new LinkedList<>();//ליצור לפי הDB ליסט של קלאודפוינט לכל אוביקט TODO
-
+                List<CloudPoint> listCoordinates = getCloudPointList(detectedObject); //Create list of coordinates (cloud point) for the corresponding Object
+                //Create corresponding Tracked Object
                 TrackedObject newTrackedObj = new TrackedObject(detectedObject.getId(),currentTick, detectedObject.getDescription(), listCoordinates);
-                LiDar.addTrackedObject(newTrackedObj);
+                LiDar.addTrackedObject(newTrackedObj); //Add the new tracked object to the LiDAR's list, waiting for the appropriate time to send it.
             }
-
-            sendEvent(new TrackedObjectsEvent(getName(), LiDar.getLastTrackedObjects())); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
-            System.out.println(getName() + "sent Tracked Objects event");
 
         });
 
@@ -76,5 +84,12 @@ public class LiDarService extends MicroService {
             terminate();
         });
 
+    }
+
+    private List<CloudPoint> getCloudPointList(DetectedObject detectedObject) {
+        //TODO: ליצור מהדאטהבייסלידר . לעבור על כל הרשימה של StampedCloudPoints
+        // ולבדוק התאמה לפי זמן ואיידי
+
+        return new ArrayList<>();
     }
 }
