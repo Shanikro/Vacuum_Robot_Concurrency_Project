@@ -51,34 +51,29 @@ public class CameraService extends MicroService {
 
             currentTick = tick.getTime();
 
-            StampedDetectedObjects detectedObjects = null;
+            StampedDetectedObjects detectedObjectsAtTime = null;
             for(StampedDetectedObjects s : camera.getDetectedObjectsList()){
-                if(s.getTime() == currentTick + camera.getFrequency()) {
-                    detectedObjects = s;
+                if(s.getTime() == currentTick - camera.getFrequency()) {
+                    detectedObjectsAtTime = s;
                     break;
                 }
             }
-            // Check if there is objects and the camera is on
-            if (detectedObjects != null && camera.getStatus()== STATUS.UP) {
-                    // Send event with detected objects
-                    Future<Boolean> futureObject = (Future<Boolean>) sendEvent(new DetectObjectsEvent(getName(), detectedObjects));
-                    System.out.println("Camera" + getName() + " send detected objects event");
-            }
-            //TODO: check what we need to do with the future
 
-                //updates in the object - לפי מה שלוטם אמר העדכון אמור להיות באובייקט עצמו
-//                    if(futureObject.get(tick.getDuration()-tick.getTime(), TimeUnit.MILLISECONDS)) {
-//                        StatisticalFolder.updateDetectedObjects(camera.getDetectedObjectsCount());
-//                    }
+            // Check if there is objects and the camera is on
+            if (detectedObjectsAtTime != null && camera.getStatus()== STATUS.UP) {
+                    // Send event with detected objects
+                    Future<Boolean> futureObject = (Future<Boolean>) sendEvent(new DetectObjectsEvent(getName(), detectedObjectsAtTime));
+                    System.out.println("Camera" + getName() + " send detected objects event");
+                //TODO: check what we need to do with the future
+            }
 
             // Handle errors
             if (!(camera.getStatus()== STATUS.UP)) {
                 System.out.println("Sender " + getName() + " stopped");
-                sendBroadcast(new TerminatedBroadcast(""+camera.getId()));
+                sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
-                // maybe we need another condition that checks if the status is ERROR
             }
-            //}
+
         });
         //TODO: need to deal with the fact that the camera need to terminated when it finish to detect objects
 
@@ -92,7 +87,7 @@ public class CameraService extends MicroService {
         // Handle CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
             camera.setStatus(STATUS.ERROR);
-
+            terminate();
         });
     }
 

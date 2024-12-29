@@ -39,6 +39,7 @@ public class LiDarWorkerTracker {
     public int getFrequency() {
         return frequency;
     }
+
     public void addTrackedObject(TrackedObject obj){
         lastTrackedObjects.add(obj);
     }

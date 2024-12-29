@@ -1,9 +1,9 @@
 package bgu.spl.mics.application.objects;
 
+import bgu.spl.mics.Event;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -40,6 +40,10 @@ public class FusionSlam {
         return landMarks;
     }
 
+    public List<TrackedObjectsEvent> getTrackedObjects(){
+        return trackedObjects;
+    }
+
     public Pose getPoseByTime(int time) {
         Pose output = null;
         for (Pose p : poses){
@@ -53,74 +57,15 @@ public class FusionSlam {
 
 
     //Methods
-    public void addLandMark(LandMark landMark) {
+    public void addLandMark(LandMark landMark){
         landMarks.add(landMark);
-    }
+    } //TODO:לבדוק אם לא קיים כבר
+
     public void addPose(Pose pose){
         poses.add(pose);
     }
 
-    public void updateMap(TrackedObject trackedObject, Pose pose) {
-        List<CloudPoint> updatedPoints = new LinkedList<>();
+    public void updateMap(TrackedObject trackedObject, Pose pose) { //TODO
 
-        for (CloudPoint point : trackedObject.getCoordinates()){
-            updatedPoints.add(calculatePoint(point, pose));
-        }
-
-        boolean updated = false;
-        for(LandMark landMark : landMarks) {
-            if (landMark.getId().equals(trackedObject.getId())) {
-                List<CloudPoint> mergedList = mergeLists(landMark.getCoordinates(), updatedPoints);
-                landMark.setCoordinates(mergedList);
-                updated = true;
-                break;
-            }
-        }
-        if (!updated){
-            addLandMark(new LandMark(trackedObject.getId(), trackedObject.getDescription(), updatedPoints));
-        }
     }
-
-    private List<CloudPoint> mergeLists(List<CloudPoint> prevList, List<CloudPoint> newList) {
-        List<CloudPoint> output = new LinkedList<>();
-        int index = 0;
-        while (prevList.get(index) != null && newList.get(index) != null){
-            output.add(makeAverage(prevList.get(index), newList.get(index)));
-            index++;
-        }
-        if(prevList.size() > newList.size()){
-            while (prevList.get(index) != null)
-                output.add(prevList.get(index));
-        }
-        else {
-            while (newList.get(index) != null)
-                output.add(newList.get(index));
-        }
-        return output;
-    }
-
-    private CloudPoint calculatePoint(CloudPoint point, Pose pose) {
-        double xLocal = point.getX();
-        double yLocal = point.getY();
-
-        float xRobot = pose.getX();
-        float yRobot = pose.getY();
-        float yawDegrees = pose.getYaw();
-
-        double yawRadians = Math.toRadians(yawDegrees);
-
-        double cosYaw = Math.cos(yawRadians);
-        double sinYaw = Math.sin(yawRadians);
-
-        double xGlobal = (cosYaw * xLocal - sinYaw * yLocal) + xRobot;
-        double yGlobal = (sinYaw * xLocal + cosYaw * yLocal) + yRobot;
-
-        return new CloudPoint(xGlobal, yGlobal);
-    }
-
-
-    private CloudPoint makeAverage(CloudPoint last, CloudPoint newC){
-        return new CloudPoint((last.getX()+newC.getX())/2,(last.getY()+newC.getY())/2);
-    }
-
 }
