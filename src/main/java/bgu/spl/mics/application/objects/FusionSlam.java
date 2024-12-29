@@ -65,7 +65,7 @@ public class FusionSlam {
         poses.add(pose);
     }
 
-    public void calculate(TrackedObject trackedObject, Pose pose) { //TODO
+    public void updateMap(TrackedObject trackedObject, Pose pose) { //TODO
 
     }
 }

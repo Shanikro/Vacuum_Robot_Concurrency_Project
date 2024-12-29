@@ -26,6 +26,7 @@ public class FusionSlamService extends MicroService {
     private FusionSlam fusionSlam;
     private int currentTick;
     private final Map<Integer, List<TrackedObject>> pendingTrackedObjects; //A data structure that temporarily stores objects whose corresponding Pose not arrived yet.
+
     /**
      * Constructor for FusionSlamService.
      *
@@ -54,16 +55,17 @@ public class FusionSlamService extends MicroService {
         //Handle TrackedObjectsEvent
         subscribeEvent(TrackedObjectsEvent.class, trackedObjectsEvent ->{
             int time = trackedObjectsEvent.getTrackedObjects().get(0).getTime(); //Check the time that tracked
+            Pose matchedPose = fusionSlam.getPoseByTime(time);
 
             //In case the corresponding Pose has not appeared yet.
-            if (time > currentTick){ //TODO לבדוק אם זה אומר שבוודאות הגיע כבר הפוס
+            if (matchedPose == null){
                 pendingTrackedObjects.put(time, trackedObjectsEvent.getTrackedObjects()); //Save the objects for later
             }
 
+            //In case the Pose already appear, update the global Map.
             else{
-                Pose correspondingPose = fusionSlam.getPoseByTime(time);
                 for (TrackedObject object : trackedObjectsEvent.getTrackedObjects()) {
-                    fusionSlam.calculate(object, correspondingPose);
+                    fusionSlam.updateMap(object, matchedPose);
                 }
             }
 
@@ -77,8 +79,8 @@ public class FusionSlamService extends MicroService {
             //Check if there is TrackedObjects that waiting for the pose
             if (pendingTrackedObjects.containsKey(time)) {
                 List<TrackedObject> matchedTrackedObjects = pendingTrackedObjects.remove(time); //Remove them
-                for (TrackedObject object : matchedTrackedObjects) { //TODO Calculate the global pose LandMarkלבדוק איפה האחראיות להוסיף ל
-                    fusionSlam.calculate(object, pose.getPose());
+                for (TrackedObject object : matchedTrackedObjects) {
+                    fusionSlam.updateMap(object, pose.getPose());
                 }
             }
         });
