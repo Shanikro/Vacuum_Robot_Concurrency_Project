@@ -60,28 +60,39 @@ public class FusionSlam {
         poses.add(pose);
     }
 
+    /**
+     * Manages the addition of new landmarks to the map.
+     */
     public void updateMap(TrackedObject trackedObject, Pose pose) {
         List<CloudPoint> updatedPoints = new LinkedList<>();
 
-
-        for (CloudPoint point : trackedObject.getCoordinates()){
+        for (CloudPoint point : trackedObject.getCoordinates()){ //For each point, calculate its relative location from the pose
             updatedPoints.add(calculatePoint(point, pose));
         }
 
         boolean updated = false;
         for(LandMark landMark : landMarks) {
-            if (landMark.getId().equals(trackedObject.getId())) {
-                List<CloudPoint> mergedList = mergeLists(landMark.getCoordinates(), updatedPoints);
-                landMark.setCoordinates(mergedList);
+            if (landMark.getId().equals(trackedObject.getId())) { //In case the landMark is already in the global map
+                List<CloudPoint> mergedList = mergeLists(landMark.getCoordinates(), updatedPoints); //Calculate the merge coordinates
+                landMark.setCoordinates(mergedList); //Update the landMark coordinates
                 updated = true;
                 break;
             }
         }
-        if (!updated){
+
+        if (!updated){ //In case the landMark is not in the global map
+            //Increase the landmarks in the Statistic Folder by 1
+            StatisticalFolder.getInstance().incrementLandMarks();
+
+            //Add new landmark to the global map
             addLandMark(new LandMark(trackedObject.getId(), trackedObject.getDescription(), updatedPoints));
         }
     }
 
+
+    /**
+     * If the landmark already exists in the global map, this method calculates the new coordinates as requested.
+     */
     private List<CloudPoint> mergeLists(List<CloudPoint> prevList, List<CloudPoint> newList) {
         List<CloudPoint> output = new LinkedList<>();
         int index = 0;
@@ -100,6 +111,9 @@ public class FusionSlam {
         return output;
     }
 
+    /**
+     * Calculates the new CloudPoint considering the LiDAR cloud point and the robot's pose as requested.
+     */
     private CloudPoint calculatePoint(CloudPoint point, Pose pose) {
         double xLocal = point.getX();
         double yLocal = point.getY();
@@ -119,7 +133,9 @@ public class FusionSlam {
         return new CloudPoint(xGlobal, yGlobal);
     }
 
-
+    /**
+     * If the landmark already exists in the global map, this method calculates the average between the old and new CloudPoints.
+     */
     private CloudPoint makeAverage(CloudPoint last, CloudPoint newC){
         return new CloudPoint((last.getX()+newC.getX())/2,(last.getY()+newC.getY())/2);
     }

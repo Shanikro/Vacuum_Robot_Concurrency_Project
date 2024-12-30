@@ -27,7 +27,7 @@ public class TimeService extends MicroService {
         super("Time Service");
         this.tickTime = TickTime;
         this.duration = Duration;
-        currentTick = 0;
+        currentTick = 1;
     }
 
     /**
@@ -40,8 +40,9 @@ public class TimeService extends MicroService {
             System.out.println("Sender " + getName() + " started");
             sendBroadcast(new TickBroadcast(getName(),currentTick,duration));
             currentTick++;
+            StatisticalFolder.getInstance().incrementSystemRuntime(); //Increase the SystemRunTime by 1
         }
         sendBroadcast(new TerminatedBroadcast(getName()));
-        terminate();
+        terminate(); //TODO כשהוא מסיים אז המערכת מפסיקה כולה ומפיקה ג'ייסון
     }
 }

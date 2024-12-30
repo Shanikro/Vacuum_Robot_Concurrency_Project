@@ -61,6 +61,9 @@ public class CameraService extends MicroService {
 
             // Check if there is objects and the camera is on
             if (detectedObjectsAtTime != null && camera.getStatus()== STATUS.UP) {
+                    //Update the number of Detected Objects in the Statistical Folder
+                    StatisticalFolder.getInstance().addDetectedObjects(detectedObjectsAtTime.getDetectedObjects().size());
+
                     // Send event with detected objects
                     Future<Boolean> futureObject = (Future<Boolean>) sendEvent(new DetectObjectsEvent(getName(), detectedObjectsAtTime));
                     System.out.println("Camera" + getName() + " send detected objects event");

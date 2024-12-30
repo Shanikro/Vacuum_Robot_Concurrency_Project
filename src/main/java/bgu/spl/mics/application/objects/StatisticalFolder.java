@@ -1,48 +1,63 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Holds statistical information about the system's operation.
- * This class aggregates metrics such as the runtime of the system,
+ * This class aggregates metrics such as the runtime of the system (in ticks),
  * the number of objects detected and tracked, and the number of landmarks identified.
  */
 public class StatisticalFolder {
 
-    private int systemRuntime;
-    private int numDetectedObjects;
-    private int numTrackedObjects;
-    private int numLandmarks;
+    private static final StatisticalFolder instance = new StatisticalFolder();
 
-    public StatisticalFolder(int systemRuntime, int numDetectedObjects, int numTrackedObjects, int numLandmarks){
+    private AtomicInteger systemRuntime;
+    private AtomicInteger numDetectedObjects;
+    private AtomicInteger numTrackedObjects;
+    private AtomicInteger numLandmarks;
 
-        this.systemRuntime = systemRuntime;
-        this.numDetectedObjects = numDetectedObjects;
-        this.numTrackedObjects = numTrackedObjects;
-        this.numLandmarks = numLandmarks;
+    public StatisticalFolder(){
+
+        this.systemRuntime = new AtomicInteger(0);
+        this.numDetectedObjects = new AtomicInteger(0);
+        this.numTrackedObjects = new AtomicInteger(0);
+        this.numLandmarks = new AtomicInteger(0);
 
     }
 
+    //Static method to get the Singleton instance
+    public static StatisticalFolder getInstance() {
+        return instance;
+    }
+
+    //Getters
     public int getNumDetectedObjects() {
-        return numDetectedObjects;
+        return numDetectedObjects.get();
     }
 
     public int getNumLandmarks() {
-        return numLandmarks;
+        return numLandmarks.get();
     }
 
     public int getNumTrackedObjects() {
-        return numTrackedObjects;
+        return numTrackedObjects.get();
     }
 
     public int getSystemRuntime() {
-        return systemRuntime;
+        return systemRuntime.get();
+    }
+
+    //Setters
+    public void incrementSystemRuntime(){
+        systemRuntime.incrementAndGet();
     }
     public void addTrackedObjects(int amount){
-        numTrackedObjects += amount;
+        numTrackedObjects.addAndGet(amount);
     }
     public void addDetectedObjects(int amount){
-        numDetectedObjects += amount;
+        numDetectedObjects.addAndGet(amount);
     }
-    public void addLandMarks(int amount){
-        numLandmarks += amount;
+    public void incrementLandMarks(){
+        numLandmarks.incrementAndGet();
     }
 }

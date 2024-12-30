@@ -47,15 +47,21 @@ public class LiDarService extends MicroService {
             currentTick = tick.getTime();
 
             List<TrackedObject> trackedObjectsToSlam = new LinkedList<>();
-            for(TrackedObject o : LiDar.getLastTrackedObjects()){
+            for(TrackedObject o : LiDar.getLastTrackedObjects()){ //TODO סנכרון
                 if(o.getTime() == currentTick - LiDar.getFrequency()) {
                     trackedObjectsToSlam.add(o); //Add this object to the list used by Fusion Slam
                     LiDar.getLastTrackedObjects().remove(o); //Remove the object from the last tracked object list of the lidar
                 }
             }
 
-            sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
-            System.out.println(getName() + "sent Tracked Objects event");
+            if (!trackedObjectsToSlam.isEmpty()) { //Send the tracked objects
+
+                //Update the number of Tracked Objects in the Statistical Folder
+                StatisticalFolder.getInstance().addTrackedObjects(trackedObjectsToSlam.size());
+
+                sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
+                System.out.println(getName() + "sent Tracked Objects event");
+            }
 
         });
 
@@ -63,12 +69,30 @@ public class LiDarService extends MicroService {
         subscribeEvent(DetectObjectsEvent.class, detectObjectsevent ->{
 
             StampedDetectedObjects stampedDetectedObjects = detectObjectsevent.getDetectedObjects(); //Include list of detected objects
+            int trackedTime = stampedDetectedObjects.getTime() + LiDar.getFrequency(); //Time to send as event
 
+            List<TrackedObject> trackedObjectsToSlam = new LinkedList<>();
+           //TODO סנכרון
             for (DetectedObject detectedObject : stampedDetectedObjects.getDetectedObjects()){
-                List<CloudPoint> listCoordinates = getCloudPointList(detectedObject); //Create list of coordinates (cloud point) for the corresponding Object
+                List<CloudPoint> listCoordinates = getCloudPointList(detectedObject,stampedDetectedObjects.getTime()); //Create list of coordinates (cloud point) for the corresponding Object
                 //Create corresponding Tracked Object
-                TrackedObject newTrackedObj = new TrackedObject(detectedObject.getId(),currentTick, detectedObject.getDescription(), listCoordinates);
-                LiDar.addTrackedObject(newTrackedObj); //Add the new tracked object to the LiDAR's list, waiting for the appropriate time to send it.
+                TrackedObject newTrackedObj = new TrackedObject(detectedObject.getId(),trackedTime, detectedObject.getDescription(), listCoordinates);
+
+                if(trackedTime<=currentTick){
+                    trackedObjectsToSlam.add(newTrackedObj); //The time Tick already passed, we can send it
+                }
+                else {
+                    LiDar.addTrackedObject(newTrackedObj); //Add the new tracked object to the LiDAR's list, waiting for the appropriate time to send it.
+                }
+            }
+
+            if (!trackedObjectsToSlam.isEmpty()){ //Send the tracked objects whose time has already passed
+
+                //Update the number of Tracked Objects in the Statistical Folder
+                StatisticalFolder.getInstance().addTrackedObjects(trackedObjectsToSlam.size());
+
+                sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
+                System.out.println(getName() + "sent Tracked Objects event");
             }
 
         });
@@ -86,14 +110,14 @@ public class LiDarService extends MicroService {
 
     }
 
-    private List<CloudPoint> getCloudPointList(DetectedObject detectedObject) {
+    private List<CloudPoint> getCloudPointList(DetectedObject detectedObject, int detectedTime) {
 
         LinkedList<CloudPoint> output = new LinkedList<>();
 
         List<StampedCloudPoints> dataBase = LiDarDataBase.getInstance("").getCloudPoints(); //TODO
 
-        for(StampedCloudPoints s : dataBase){ //TODO לבדוק אם צריך לזמן + תדירות או רק T
-            if(s.getTime() == currentTick && s.getId().equals(detectedObject.getId())){ //Find the corresponding StampedCloudPoints
+        for(StampedCloudPoints s : dataBase){ //Find the corresponding StampedCloudPoints According to detectedTime + frequency
+            if(s.getTime() == detectedTime + LiDar.getFrequency() && s.getId().equals(detectedObject.getId())){
                 for(List<Double> l : s.getCloudPoints()){ //Copy each list with x and y to a CloudPoint object
                     CloudPoint newPoint = new CloudPoint(l.get(0),l.get(1));
                     output.add(newPoint);
