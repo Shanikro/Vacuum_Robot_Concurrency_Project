@@ -8,11 +8,6 @@ import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.*;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 /**
  * CameraService is responsible for processing data from the camera and
  * sending DetectObjectsEvents to LiDAR workers.
@@ -24,6 +19,7 @@ public class CameraService extends MicroService {
 
     private final Camera camera;
     private int currentTick;
+    private int stampedObjectUntilFinish;
 
 
     /**
@@ -35,6 +31,7 @@ public class CameraService extends MicroService {
         super("Camera" + camera.getId());
         this.camera = camera;
         this.currentTick = 0;
+        this.stampedObjectUntilFinish = camera.getDetectedObjectsList().size();
     }
 
     /**
@@ -59,37 +56,57 @@ public class CameraService extends MicroService {
                 }
             }
 
-            // Check if there is objects and the camera is on
-            if (detectedObjectsAtTime != null && camera.getStatus()== STATUS.UP) {
+            // Check if there is objects
+            if (detectedObjectsAtTime != null) {
+
+                //Check ERROR id's
+                for (DetectedObject o : detectedObjectsAtTime.getDetectedObjects()) {
+                    if (o.getId().equals("ERROR")) {
+                        camera.setStatus(STATUS.ERROR);
+                        //TODO: להוסיף לג'ייסון כוול התיאור
+                    }
+                    break;
+                }
+
+                //If everything OK
+                if (camera.getStatus() == STATUS.UP) {
+                    stampedObjectUntilFinish--; //Update the count until the camera finish
+
                     //Update the number of Detected Objects in the Statistical Folder
                     StatisticalFolder.getInstance().addDetectedObjects(detectedObjectsAtTime.getDetectedObjects().size());
 
                     // Send event with detected objects
                     Future<Boolean> futureObject = (Future<Boolean>) sendEvent(new DetectObjectsEvent(getName(), detectedObjectsAtTime));
-                    System.out.println("Camera" + getName() + " send detected objects event");
-                //TODO: check what we need to do with the future
+                    System.out.println("Camera" + getName() + " send detected objects event");  //TODO: check what we need to do with the future
+                }
             }
 
-            // Handle errors
-            if (!(camera.getStatus()== STATUS.UP)) {
-                System.out.println("Sender " + getName() + " stopped");
-                sendBroadcast(new TerminatedBroadcast(getName()));
+            //In case of camera error
+            if (camera.getStatus()== STATUS.ERROR) {
+                System.out.println("Sender " + getName() + " crashed!");
+                sendBroadcast(new CrashedBroadcast(getName()));
                 terminate();
             }
 
+            //In case that the camera finish
+            if(stampedObjectUntilFinish == 0){
+                camera.setStatus(STATUS.DOWN);
+                System.out.println("Sender " + getName() + " terminated!");
+                sendBroadcast(new TerminatedBroadcast(getName()));
+                terminate();
+            }
         });
-        //TODO: need to deal with the fact that the camera need to terminated when it finish to detect objects
+
 
         // Handle TerminatedBroadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
-            camera.setStatus(STATUS.DOWN);
-            System.out.println("Camera " + camera.getId() + " stopped");
+            System.out.println("Camera " + camera.getId() + " terminated by" + terminatedBroadcast.getSenderId());
             terminate();
         });
 
         // Handle CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
-            camera.setStatus(STATUS.ERROR);
+            System.out.println("Camera " + camera.getId() + " crashed by " + crashedBroadcast.getSenderId());
             terminate();
         });
     }

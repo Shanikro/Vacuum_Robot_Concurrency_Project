@@ -10,4 +10,8 @@ public class CrashedBroadcast implements Broadcast {
         this.senderId = senderId;
     }
 
+    public String getSenderId() {
+        return senderId;
+    }
+
 }

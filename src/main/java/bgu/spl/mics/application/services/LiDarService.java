@@ -21,6 +21,7 @@ public class LiDarService extends MicroService {
 
     private LiDarWorkerTracker LiDar;
     private int currentTick;
+    private int stampedPointsUntilFinish;
 
     /**
      * Constructor for LiDarService.
@@ -31,6 +32,7 @@ public class LiDarService extends MicroService {
         super("lidarWorker" + LiDarWorkerTracker.getId());
         this.LiDar = LiDarWorkerTracker;
         this.currentTick = 0;
+        this.stampedPointsUntilFinish = LiDarDataBase.getInstance("").getCloudPoints().size(); //TODO
     }
 
     /**
@@ -54,13 +56,26 @@ public class LiDarService extends MicroService {
                 }
             }
 
+
+
             if (!trackedObjectsToSlam.isEmpty()) { //Send the tracked objects
+
+                //Update the count until the LiDar finish
+                stampedPointsUntilFinish = stampedPointsUntilFinish - trackedObjectsToSlam.size();
 
                 //Update the number of Tracked Objects in the Statistical Folder
                 StatisticalFolder.getInstance().addTrackedObjects(trackedObjectsToSlam.size());
 
                 sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
                 System.out.println(getName() + "sent Tracked Objects event");
+            }
+
+            //In case that the LiDar finish
+            if(stampedPointsUntilFinish == 0 && LiDar.getLastTrackedObjects().isEmpty()){
+                LiDar.setStatus(STATUS.DOWN);
+                System.out.println("Sender " + getName() + " terminated!");
+                sendBroadcast(new TerminatedBroadcast(getName()));
+                terminate();
             }
 
         });
@@ -74,8 +89,15 @@ public class LiDarService extends MicroService {
             List<TrackedObject> trackedObjectsToSlam = new LinkedList<>();
            //TODO סנכרון
             for (DetectedObject detectedObject : stampedDetectedObjects.getDetectedObjects()){
+
                 List<CloudPoint> listCoordinates = getCloudPointList(detectedObject,stampedDetectedObjects.getTime()); //Create list of coordinates (cloud point) for the corresponding Object
-                //Create corresponding Tracked Object
+
+                //In case of LiDar error,break
+                if (LiDar.getStatus() == STATUS.ERROR) {
+                    break;
+                }
+
+                //If not error, create corresponding Tracked Object
                 TrackedObject newTrackedObj = new TrackedObject(detectedObject.getId(),trackedTime, detectedObject.getDescription(), listCoordinates);
 
                 if(trackedTime<=currentTick){
@@ -86,7 +108,18 @@ public class LiDarService extends MicroService {
                 }
             }
 
-            if (!trackedObjectsToSlam.isEmpty()){ //Send the tracked objects whose time has already passed
+            //In case of LiDar error
+            if (LiDar.getStatus() == STATUS.ERROR) {
+                System.out.println("Sender " + getName() + " crashed!");
+                sendBroadcast(new CrashedBroadcast(getName()));
+                terminate();
+            }
+
+            //If the LiDar is UP, Send the tracked objects whose time has already passed
+            if (LiDar.getStatus() == STATUS.UP && !trackedObjectsToSlam.isEmpty()){
+
+                //Update the count until the LiDar finish
+                stampedPointsUntilFinish = stampedPointsUntilFinish - trackedObjectsToSlam.size();
 
                 //Update the number of Tracked Objects in the Statistical Folder
                 StatisticalFolder.getInstance().addTrackedObjects(trackedObjectsToSlam.size());
@@ -95,16 +128,25 @@ public class LiDarService extends MicroService {
                 System.out.println(getName() + "sent Tracked Objects event");
             }
 
+            //In case that the LiDar finish
+            if(stampedPointsUntilFinish == 0 && LiDar.getLastTrackedObjects().isEmpty()){
+                LiDar.setStatus(STATUS.DOWN);
+                System.out.println("Sender " + getName() + " terminated!");
+                sendBroadcast(new TerminatedBroadcast(getName()));
+                terminate();
+            }
+
         });
 
         // Handle Terminated Broadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
-            System.out.println("Lidar " + LiDar.getId() + " stopped");
+            System.out.println("LiDar " + LiDar.getId() + " terminated by" + terminatedBroadcast.getSenderId());
             terminate();
         });
 
         // Handle Crashed Broadcast
         subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
+            System.out.println("LiDar " + LiDar.getId() + " crashed by " + crashedBroadcast.getSenderId());
             terminate();
         });
 
@@ -116,15 +158,25 @@ public class LiDarService extends MicroService {
 
         List<StampedCloudPoints> dataBase = LiDarDataBase.getInstance("").getCloudPoints(); //TODO
 
-        for(StampedCloudPoints s : dataBase){ //Find the corresponding StampedCloudPoints According to detectedTime + frequency
-            if(s.getTime() == detectedTime + LiDar.getFrequency() && s.getId().equals(detectedObject.getId())){
-                for(List<Double> l : s.getCloudPoints()){ //Copy each list with x and y to a CloudPoint object
-                    CloudPoint newPoint = new CloudPoint(l.get(0),l.get(1));
-                    output.add(newPoint);
-                }
+        for (StampedCloudPoints s : dataBase) { //Find the corresponding StampedCloudPoints According to detectedTime + frequency
+
+            //Check ERROR id's
+            if (s.getId().equals("ERROR")) {
+                LiDar.setStatus(STATUS.ERROR);
                 break;
+                //TODO: להוסיף לג'ייסון כוול התיאור
+            }
+
+            //If everything OK
+            else if (s.getTime() == detectedTime + LiDar.getFrequency() && s.getId().equals(detectedObject.getId())) {
+                for (List<Double> l : s.getCloudPoints()) { //Copy each list with x and y to a CloudPoint object
+                    CloudPoint newPoint = new CloudPoint(l.get(0), l.get(1));
+                    output.add(newPoint);
+                    break;
+                }
             }
         }
         return output;
     }
+
 }
