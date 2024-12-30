@@ -87,9 +87,20 @@ public class LiDarService extends MicroService {
     }
 
     private List<CloudPoint> getCloudPointList(DetectedObject detectedObject) {
-        //TODO: ליצור מהדאטהבייסלידר . לעבור על כל הרשימה של StampedCloudPoints
-        // ולבדוק התאמה לפי זמן ואיידי
 
-        return new ArrayList<>();
+        LinkedList<CloudPoint> output = new LinkedList<>();
+
+        List<StampedCloudPoints> dataBase = LiDarDataBase.getInstance("").getCloudPoints(); //TODO
+
+        for(StampedCloudPoints s : dataBase){ //TODO לבדוק אם צריך לזמן + תדירות או רק T
+            if(s.getTime() == currentTick && s.getId().equals(detectedObject.getId())){ //Find the corresponding StampedCloudPoints
+                for(List<Double> l : s.getCloudPoints()){ //Copy each list with x and y to a CloudPoint object
+                    CloudPoint newPoint = new CloudPoint(l.get(0),l.get(1));
+                    output.add(newPoint);
+                }
+                break;
+            }
+        }
+        return output;
     }
 }

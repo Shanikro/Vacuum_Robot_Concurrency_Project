@@ -4,6 +4,7 @@ import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.example.messages.ExampleBroadcast;
 
 /**
@@ -39,6 +40,7 @@ public class TimeService extends MicroService {
             System.out.println("Sender " + getName() + " started");
             sendBroadcast(new TickBroadcast(getName(),currentTick,duration));
             currentTick++;
+            StatisticalFolder.class
         }
         sendBroadcast(new TerminatedBroadcast(getName()));
         terminate();
