@@ -39,4 +39,25 @@ public class GPSIMU {
     public void setStatus(STATUS status) {
         this.status = status;
     }
+
+    public Pose handleTick(int time) {
+
+        //Find the corresponding pose
+        currentTick = time;
+        Pose currentPose = null;
+        for(Pose p : poseList){
+            if(p.getTime() == currentTick){
+                currentPose = p;
+                break;
+            }
+        }
+
+        //If no more data, shut down
+        if (currentPose == null)
+        {
+            status = STATUS.DOWN;
+        }
+
+        return currentPose;
+    }
 }

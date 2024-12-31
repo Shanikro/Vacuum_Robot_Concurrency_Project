@@ -36,13 +36,15 @@ public class TimeService extends MicroService {
      */
     @Override
     protected void initialize() {
+        System.out.println("Sender " + getName() + " started");
         while(currentTick<=duration) { //While we haven't reached duration time, we will send TickBroadcast to all listeners.
-            System.out.println("Sender " + getName() + " started");
-            sendBroadcast(new TickBroadcast(getName(),currentTick,duration));
+            sendBroadcast(new TickBroadcast(getName(),currentTick));
             currentTick++;
             StatisticalFolder.getInstance().incrementSystemRuntime(); //Increase the SystemRunTime by 1
         }
+
+        //In case we reached the duration time
         sendBroadcast(new TerminatedBroadcast(getName()));
-        terminate(); //TODO כשהוא מסיים אז המערכת מפסיקה כולה ומפיקה ג'ייסון
+        terminate();
     }
 }
