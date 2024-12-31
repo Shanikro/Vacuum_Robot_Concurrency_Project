@@ -10,24 +10,51 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CameraInitializer {
-    public static List<MicroService> initializeCameras(JsonArray cameraData) {
-        List<MicroService> cameraServices = new ArrayList<>();
-        List<Camera> cameras = new ArrayList<>();
+//    public static List<MicroService> initializeCameras(JsonArray cameraData) {
+//
+//        List<MicroService> cameraServices = new ArrayList<>();
+//        List<Camera> cameras = new ArrayList<>();
+//
+//        for (int i = 0; i < cameraData.size(); i++) {
+//            JsonObject cameraConfig = cameraData.get(i).getAsJsonObject();
+//            int id = cameraConfig.get("id").getAsInt();
+//            int frequency = cameraConfig.get("frequency").getAsInt();
+//
+//            List<StampedDetectedObjects> detectedObjectsList = extractDetectedObjects(cameraConfig);
+//            Camera camera = new Camera(id, frequency, detectedObjectsList);
+//            cameras.add(camera);
+//
+//            MicroService cameraService = new CameraService(camera);
+//            cameraServices.add(cameraService);
+//        }
+//        return cameraServices;
+//    }
+public static List<MicroService> initializeCameras(List<CameraConfiguration> cameraConfigurations) {
 
-        for (int i = 0; i < cameraData.size(); i++) {
-            JsonObject cameraConfig = cameraData.get(i).getAsJsonObject();
-            int id = cameraConfig.get("id").getAsInt();
-            int frequency = cameraConfig.get("frequency").getAsInt();
+    List<MicroService> cameraServices = new ArrayList<>();
+    List<Camera> cameras = new ArrayList<>();
 
-            List<StampedDetectedObjects> detectedObjectsList = extractDetectedObjects(cameraConfig);
-            Camera camera = new Camera(id, frequency, detectedObjectsList);
-            cameras.add(camera);
+    // עבור כל הגדרה של מצלמה
+    for (CameraConfiguration cameraConfig : cameraConfigurations) {
+        // קבלת הנתונים מתוך CameraConfiguration
+        int id = cameraConfig.getId();
+        int frequency = cameraConfig.getFrequency();
 
-            MicroService cameraService = new CameraService(camera);
-            cameraServices.add(cameraService);
-        }
-        return cameraServices;
+        // הנחת ש- CameraConfiguration מכילה את רשימת ה- StampedDetectedObjects
+        List<StampedDetectedObjects> detectedObjectsList = cameraConfig.getDetectedObjects();
+
+        // יצירת אובייקט מצלמה
+        Camera camera = new Camera(id, frequency, detectedObjectsList);
+        cameras.add(camera);
+
+        // יצירת שירות מצלמה
+        MicroService cameraService = new CameraService(camera);
+        cameraServices.add(cameraService);
     }
+
+    return cameraServices;
+}
+
 
     private static List<StampedDetectedObjects> extractDetectedObjects(JsonObject cameraConfig) {
         JsonArray detectedObjectsArray = cameraConfig.getAsJsonArray("detectedObjects");

@@ -10,8 +10,6 @@ import java.util.List;
 public class SimulationManager {
 
     public static void startSimulation(int tickTime, int duration, List<MicroService> cameraServices, List<MicroService> lidarServices, MicroService poseService) {
-        MicroService timeService = new TimeService(tickTime, duration);
-        new Thread(timeService).start();
 
         for (MicroService service : cameraServices) {
             new Thread(service).start();
@@ -22,7 +20,11 @@ public class SimulationManager {
         }
 
         new Thread(poseService).start();
+
         MicroService fusionSlamService = new FusionSlamService(FusionSlam.getInstance());
         new Thread(fusionSlamService).start();
+
+        MicroService timeService = new TimeService(tickTime, duration);
+        new Thread(timeService).start();
     }
 }

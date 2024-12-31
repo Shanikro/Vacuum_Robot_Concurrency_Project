@@ -7,7 +7,9 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 public class ConfigLoader {
+
     public static Map<String, Object> loadConfig(String configFolderPath) throws Exception {
+
         Gson gson = new Gson();
         String configFilePath = Paths.get(configFolderPath, "configuration_file.json").toString();
         return gson.fromJson(new FileReader(configFilePath), Map.class);
