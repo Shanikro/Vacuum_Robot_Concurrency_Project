@@ -1,5 +1,10 @@
 package bgu.spl.mics.application.objects;
 
+import bgu.spl.mics.Future;
+import bgu.spl.mics.application.messages.CrashedBroadcast;
+import bgu.spl.mics.application.messages.DetectObjectsEvent;
+import bgu.spl.mics.application.messages.TerminatedBroadcast;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,11 +19,17 @@ public class Camera {
     private STATUS status;
     private List<StampedDetectedObjects> detectedObjectsList;
 
+    private int currentTick;
+    private int stampedObjectUntilFinish;
+
     public Camera(int id, int frequency, List<StampedDetectedObjects> detectedObjectsList) {
         this.id = id;
         this.frequency =  frequency;
         this.status = STATUS.UP;
         this.detectedObjectsList = detectedObjectsList;
+
+        this.currentTick = 0;
+        this.stampedObjectUntilFinish = detectedObjectsList.size();
 
     }
 
@@ -41,4 +52,46 @@ public class Camera {
     public void setStatus(STATUS status) {
         this.status = status;
     }
+
+    public StampedDetectedObjects handleTick(int time){
+
+        currentTick = time;
+
+        StampedDetectedObjects detectedObjectsAtTime = null;
+        for(StampedDetectedObjects s : detectedObjectsList){
+            if(s.getTime() == currentTick - frequency) {
+                detectedObjectsAtTime = s;
+                break;
+            }
+        }
+
+        // Check if there is objects
+        if (detectedObjectsAtTime != null) {
+            //Check ERROR id's
+            for (DetectedObject o : detectedObjectsAtTime.getDetectedObjects()) {
+                if (o.getId().equals("ERROR")) {
+                    setStatus(STATUS.ERROR);
+                    //TODO: להוסיף לג'ייסון כוול התיאור
+                }
+                break;
+            }
+
+            //If everything OK
+            if (getStatus() == STATUS.UP) {
+                stampedObjectUntilFinish--; //Update the count until the camera finish
+
+                //Update the number of Detected Objects in the Statistical Folder
+                StatisticalFolder.getInstance().addDetectedObjects(detectedObjectsAtTime.getDetectedObjects().size());
+            }
+        }
+
+        //In case that the camera finish
+        if(stampedObjectUntilFinish == 0){
+            setStatus(STATUS.DOWN);
+        }
+
+        return detectedObjectsAtTime;
+    }
 }
+
+

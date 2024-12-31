@@ -144,8 +144,10 @@ public class LiDarService extends MicroService {
 
         // Handle Terminated Broadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
-            System.out.println("LiDar " + LiDar.getId() + " terminated by" + terminatedBroadcast.getSenderId());
-            terminate();
+            if(terminatedBroadcast.getSenderId().equals("Fusion Slam Service")) {
+                System.out.println("LiDar " + LiDar.getId() + " terminated by" + terminatedBroadcast.getSenderId());
+                terminate();
+            }
         });
 
         // Handle Crashed Broadcast

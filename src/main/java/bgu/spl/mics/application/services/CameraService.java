@@ -15,9 +15,6 @@ import bgu.spl.mics.application.objects.*;
 public class CameraService extends MicroService {
 
     private final Camera camera;
-    private int currentTick;
-    private int stampedObjectUntilFinish;
-
 
     /**
      * Constructor for CameraService.
@@ -27,8 +24,7 @@ public class CameraService extends MicroService {
     public CameraService(Camera camera) {
         super("Camera" + camera.getId());
         this.camera = camera;
-        this.currentTick = 0;
-        this.stampedObjectUntilFinish = camera.getDetectedObjectsList().size();
+
     }
 
     /**
@@ -47,62 +43,37 @@ public class CameraService extends MicroService {
         //Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
 
-            currentTick = tick.getTime();
+            StampedDetectedObjects detectedObjectsAtTime = camera.handleTick(tick.getTime());
 
-            StampedDetectedObjects detectedObjectsAtTime = null;
-            for(StampedDetectedObjects s : camera.getDetectedObjectsList()){
-                if(s.getTime() == currentTick - camera.getFrequency()) {
-                    detectedObjectsAtTime = s;
-                    break;
-                }
+            if(camera.getStatus() == STATUS.UP) {
+                // Send event with detected objects
+                sendEvent(new DetectObjectsEvent(getName(), detectedObjectsAtTime)); //TODO: check what we need to do with the future
+                System.out.println("Camera" + getName() + " send detected objects event");
             }
 
-            // Check if there is objects
-            if (detectedObjectsAtTime != null) {
-
-                //Check ERROR id's
-                for (DetectedObject o : detectedObjectsAtTime.getDetectedObjects()) {
-                    if (o.getId().equals("ERROR")) {
-                        camera.setStatus(STATUS.ERROR);
-                        //TODO: להוסיף לג'ייסון כוול התיאור
-                    }
-                    break;
-                }
-
-                //If everything OK
-                if (camera.getStatus() == STATUS.UP) {
-                    stampedObjectUntilFinish--; //Update the count until the camera finish
-
-                    //Update the number of Detected Objects in the Statistical Folder
-                    StatisticalFolder.getInstance().addDetectedObjects(detectedObjectsAtTime.getDetectedObjects().size());
-
-                    // Send event with detected objects
-                    Future<Boolean> futureObject = (Future<Boolean>) sendEvent(new DetectObjectsEvent(getName(), detectedObjectsAtTime));
-                    System.out.println("Camera" + getName() + " send detected objects event");  //TODO: check what we need to do with the future
-                }
-            }
-
-            //In case of camera error
-            if (camera.getStatus()== STATUS.ERROR) {
+            //In case of a camera error
+            else if (camera.getStatus()== STATUS.ERROR) {
                 System.out.println("Sender " + getName() + " crashed!");
                 sendBroadcast(new CrashedBroadcast(getName()));
                 terminate();
             }
 
-            //In case that the camera finish
-            if(stampedObjectUntilFinish == 0){
-                camera.setStatus(STATUS.DOWN);
+            //In case the camera shuts down
+            else if (camera.getStatus()== STATUS.DOWN) {
                 System.out.println("Sender " + getName() + " terminated!");
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
             }
+
         });
 
 
         // Handle TerminatedBroadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
-            System.out.println("Camera " + camera.getId() + " terminated by" + terminatedBroadcast.getSenderId());
-            terminate();
+            if(terminatedBroadcast.getSenderId().equals("Fusion Slam Service")) { //Terminate only if the fusionSlam send the broadcast
+                System.out.println("Camera " + camera.getId() + " terminated by" + terminatedBroadcast.getSenderId());
+                terminate();
+            }
         });
 
         // Handle CrashedBroadcast

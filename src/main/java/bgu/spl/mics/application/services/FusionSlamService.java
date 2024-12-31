@@ -1,19 +1,14 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.Message;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.TrackedObject;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static java.lang.reflect.Array.get;
 
 /**
  * FusionSlamService integrates data from multiple sensors to build and update
@@ -24,9 +19,6 @@ import static java.lang.reflect.Array.get;
  */
 public class FusionSlamService extends MicroService {
     private FusionSlam fusionSlam;
-    private int currentTick;
-    private final Map<Integer, List<TrackedObject>> pendingTrackedObjects; //A data structure that temporarily stores objects whose corresponding Pose not arrived yet.
-    private int objectsInAction; //When equals 0, the FusionSlam should terminate
 
     /**
      * Constructor for FusionSlamService.
@@ -36,9 +28,6 @@ public class FusionSlamService extends MicroService {
     public FusionSlamService(FusionSlam fusionSlam) {
         super("Fusion Slam Service");
         this.fusionSlam = fusionSlam;
-        this.currentTick = 0;
-        this.pendingTrackedObjects = new ConcurrentHashMap<>();
-        this.objectsInAction = 0;
     }
 
     /**
@@ -51,59 +40,39 @@ public class FusionSlamService extends MicroService {
 
         //Handle RegisterEvent
         subscribeEvent(RegisterEvent.class, event ->{
-            objectsInAction++;
+            fusionSlam.handleRegister();
         });
 
         //Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
-            currentTick = tick.getTime();
+            fusionSlam.handleTick(tick.getTime());
         });
 
         //Handle TrackedObjectsEvent
         subscribeEvent(TrackedObjectsEvent.class, trackedObjectsEvent ->{
-            int time = trackedObjectsEvent.getTrackedObjects().get(0).getTime(); //Check the time that tracked
-            Pose matchedPose = fusionSlam.getPoseByTime(time);
-
-            //In case the corresponding Pose has not appeared yet.
-            if (matchedPose == null){
-                pendingTrackedObjects.put(time, trackedObjectsEvent.getTrackedObjects()); //Save the objects for later
-            }
-
-            //In case the Pose already appear, update the global Map.
-            else{
-                for (TrackedObject object : trackedObjectsEvent.getTrackedObjects()) {
-                    fusionSlam.updateMap(object, matchedPose);
-                }
-            }
-
+            fusionSlam.handleTrackedObjects(trackedObjectsEvent);
         });
 
         //Handle PoseEvent
-        subscribeEvent(PoseEvent.class, pose -> {
-            int time = pose.getPose().getTime(); //Pose time
-            fusionSlam.addPose(pose.getPose()); //Add Pose to the pose list of FusionSlam
-
-            //Check if there is TrackedObjects that waiting for the pose
-            if (pendingTrackedObjects.containsKey(time)) {
-                List<TrackedObject> matchedTrackedObjects = pendingTrackedObjects.remove(time); //Remove them
-                for (TrackedObject object : matchedTrackedObjects) {
-                    fusionSlam.updateMap(object, pose.getPose());
-                }
-            }
+        subscribeEvent(PoseEvent.class, poseEvent -> {
+            fusionSlam.handlePose(poseEvent);
         });
 
         //Handle TerminatedBroadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
 
             if(terminatedBroadcast.getSenderId().equals("Time Service")){ //If the duration has passed, finish
-                makeOutputJson();
+                System.out.println(getName() + " terminated by" + terminatedBroadcast.getSenderId());
+                sendBroadcast(new TerminatedBroadcast(getName()));
+                fusionSlam.makeOutputJson();
                 terminate();
             }
 
             else {
-                objectsInAction--;
-                if(objectsInAction == 0){ //If all the objects have no more data , finish
-                    makeOutputJson();
+                fusionSlam.handleTerminate();
+                if(fusionSlam.getSensorsInAction() == 0){ //If all the objects have no more data , finish
+                    System.out.println(getName() + " terminated!");
+                    fusionSlam.makeOutputJson();
                     terminate();
                 }
             }
@@ -111,15 +80,9 @@ public class FusionSlamService extends MicroService {
 
         //Handle CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
-            makeOutputErrorJson();
+            System.out.println(getName() + " crashed by " + crashedBroadcast.getSenderId());
+            fusionSlam.makeOutputErrorJson();
             terminate();
         });
-    }
-
-
-    private void makeOutputErrorJson() {
-    }
-
-    private void makeOutputJson() {
     }
 }
