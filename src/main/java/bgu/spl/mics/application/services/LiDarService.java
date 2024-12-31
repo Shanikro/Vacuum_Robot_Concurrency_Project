@@ -1,12 +1,9 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.*;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -20,8 +17,6 @@ import java.util.List;
 public class LiDarService extends MicroService {
 
     private LiDarWorkerTracker LiDar;
-    private int currentTick;
-    private int stampedPointsUntilFinish;
 
     /**
      * Constructor for LiDarService.
@@ -31,8 +26,6 @@ public class LiDarService extends MicroService {
     public LiDarService(LiDarWorkerTracker LiDarWorkerTracker) {
         super("lidarWorker" + LiDarWorkerTracker.getId());
         this.LiDar = LiDarWorkerTracker;
-        this.currentTick = 0;
-        this.stampedPointsUntilFinish = LiDarDataBase.getInstance().getCloudPoints().size();
     }
 
     /**
@@ -50,67 +43,15 @@ public class LiDarService extends MicroService {
 
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
-            currentTick = tick.getTime();
-
-            List<TrackedObject> trackedObjectsToSlam = new LinkedList<>();
-            for(TrackedObject o : LiDar.getLastTrackedObjects()){ //TODO סנכרון
-                if(o.getTime() == currentTick - LiDar.getFrequency()) {
-                    trackedObjectsToSlam.add(o); //Add this object to the list used by Fusion Slam
-                    LiDar.getLastTrackedObjects().remove(o); //Remove the object from the last tracked object list of the lidar
-                }
-            }
-
-
-
-            if (!trackedObjectsToSlam.isEmpty()) { //Send the tracked objects
-
-                //Update the count until the LiDar finish
-                stampedPointsUntilFinish = stampedPointsUntilFinish - trackedObjectsToSlam.size();
-
-                //Update the number of Tracked Objects in the Statistical Folder
-                StatisticalFolder.getInstance().addTrackedObjects(trackedObjectsToSlam.size());
-
-                sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
-                System.out.println(getName() + "sent Tracked Objects event");
-            }
-
-            //In case that the LiDar finish
-            if(stampedPointsUntilFinish == 0 && LiDar.getLastTrackedObjects().isEmpty()){
-                LiDar.setStatus(STATUS.DOWN);
-                System.out.println("Sender " + getName() + " terminated!");
-                sendBroadcast(new TerminatedBroadcast(getName()));
-                terminate();
-            }
-
+            List<TrackedObject> trackedObjectsToSlam = LiDar.handleTick(tick.getTime());
+            //In case the LiDAR is UP or DOWN
+            sendEventByStatus(trackedObjectsToSlam);
         });
 
         // Handle Detect Objects Event
         subscribeEvent(DetectObjectsEvent.class, detectObjectsevent ->{
 
-            StampedDetectedObjects stampedDetectedObjects = detectObjectsevent.getDetectedObjects(); //Include list of detected objects
-            int trackedTime = stampedDetectedObjects.getTime() + LiDar.getFrequency(); //Time to send as event
-
-            List<TrackedObject> trackedObjectsToSlam = new LinkedList<>();
-           //TODO סנכרון
-            for (DetectedObject detectedObject : stampedDetectedObjects.getDetectedObjects()){
-
-                List<CloudPoint> listCoordinates = getCloudPointList(detectedObject,stampedDetectedObjects.getTime()); //Create list of coordinates (cloud point) for the corresponding Object
-
-                //In case of LiDar error,break
-                if (LiDar.getStatus() == STATUS.ERROR) {
-                    break;
-                }
-
-                //If not error, create corresponding Tracked Object
-                TrackedObject newTrackedObj = new TrackedObject(detectedObject.getId(),trackedTime, detectedObject.getDescription(), listCoordinates);
-
-                if(trackedTime<=currentTick){
-                    trackedObjectsToSlam.add(newTrackedObj); //The time Tick already passed, we can send it
-                }
-                else {
-                    LiDar.addTrackedObject(newTrackedObj); //Add the new tracked object to the LiDAR's list, waiting for the appropriate time to send it.
-                }
-            }
+            List<TrackedObject> trackedObjectsToSlam = LiDar.handleDetectObjects(detectObjectsevent);
 
             //In case of LiDar error
             if (LiDar.getStatus() == STATUS.ERROR) {
@@ -119,33 +60,15 @@ public class LiDarService extends MicroService {
                 terminate();
             }
 
-            //If the LiDar is UP, Send the tracked objects whose time has already passed
-            if (LiDar.getStatus() == STATUS.UP && !trackedObjectsToSlam.isEmpty()){
-
-                //Update the count until the LiDar finish
-                stampedPointsUntilFinish = stampedPointsUntilFinish - trackedObjectsToSlam.size();
-
-                //Update the number of Tracked Objects in the Statistical Folder
-                StatisticalFolder.getInstance().addTrackedObjects(trackedObjectsToSlam.size());
-
-                sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
-                System.out.println(getName() + "sent Tracked Objects event");
-            }
-
-            //In case that the LiDar finish
-            if(stampedPointsUntilFinish == 0 && LiDar.getLastTrackedObjects().isEmpty()){
-                LiDar.setStatus(STATUS.DOWN);
-                System.out.println("Sender " + getName() + " terminated!");
-                sendBroadcast(new TerminatedBroadcast(getName()));
-                terminate();
-            }
+            //In case the LiDAR is UP or DOWN
+            sendEventByStatus(trackedObjectsToSlam);
 
         });
 
         // Handle Terminated Broadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
             if(terminatedBroadcast.getSenderId().equals("Fusion Slam Service")) {
-                System.out.println("LiDar " + LiDar.getId() + " terminated by" + terminatedBroadcast.getSenderId());
+                System.out.println("LiDar " + LiDar.getId() + " terminated by " + terminatedBroadcast.getSenderId());
                 terminate();
             }
         });
@@ -158,31 +81,20 @@ public class LiDarService extends MicroService {
 
     }
 
-    private List<CloudPoint> getCloudPointList(DetectedObject detectedObject, int detectedTime) {
+    private void sendEventByStatus(List<TrackedObject> trackedObjectsToSlam) {
 
-        LinkedList<CloudPoint> output = new LinkedList<>();
-
-        List<StampedCloudPoints> dataBase = LiDarDataBase.getInstance().getCloudPoints();
-
-        for (StampedCloudPoints s : dataBase) { //Find the corresponding StampedCloudPoints According to detectedTime + frequency
-
-            //Check ERROR id's
-            if (s.getId().equals("ERROR")) {
-                LiDar.setStatus(STATUS.ERROR);
-                break;
-                //TODO: להוסיף לג'ייסון כוול התיאור
-            }
-
-            //If everything OK
-            else if (s.getTime() == detectedTime + LiDar.getFrequency() && s.getId().equals(detectedObject.getId())) {
-                for (List<Double> l : s.getCloudPoints()) { //Copy each list with x and y to a CloudPoint object
-                    CloudPoint newPoint = new CloudPoint(l.get(0), l.get(1));
-                    output.add(newPoint);
-                    break;
-                }
-            }
+        if(LiDar.getStatus() == STATUS.UP) {
+            // Send event with detected objects
+            sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
+            System.out.println(getName() + "sent Tracked Objects event");
         }
-        return output;
+
+        //In case the camera shuts down
+        else if (LiDar.getStatus()== STATUS.DOWN) {
+            System.out.println("Sender " + getName() + " terminated!");
+            sendBroadcast(new TerminatedBroadcast(getName()));
+            terminate();
+        }
     }
 
 }

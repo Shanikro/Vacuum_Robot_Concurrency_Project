@@ -71,7 +71,7 @@ public class CameraService extends MicroService {
         // Handle TerminatedBroadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
             if(terminatedBroadcast.getSenderId().equals("Fusion Slam Service")) { //Terminate only if the fusionSlam send the broadcast
-                System.out.println("Camera " + camera.getId() + " terminated by" + terminatedBroadcast.getSenderId());
+                System.out.println("Camera " + camera.getId() + " terminated by " + terminatedBroadcast.getSenderId());
                 terminate();
             }
         });
