@@ -29,30 +29,34 @@ public class GurionRockRunner {
      * @param args Command-line arguments. The first argument is expected to be the path to the configuration file.
      */
     public static void main(String[] args) {
-        //TODO: כל מה שעם העערות בעברית צריך למחוק זה רק בשביל להריץ עכשיו
-        // אם לא קיבלנו את הנתיב בשורת הפקודה, נשאל את המשתמש להכניס אותו
-        String configFolderPath;
+            String configFolderPath = args.length > 0 ? args[0] : promptUserForPath();
 
-        if (args.length == 0) {
-            // בקשה לקלט מהמשתמש אם לא הועבר ארגומנט
+            try {
+                Map<String, Object> configData = ConfigLoader.loadConfig(configFolderPath);
+                JsonArray poseData = ConfigLoader.loadPoseData((String) configData.get("poseJsonFile"));
+
+                JsonArray cameraData = new Gson().toJsonTree(configData.get("Cameras.CamerasConfigurations")).getAsJsonArray();
+                JsonArray lidarData = new Gson().toJsonTree(configData.get("LiDarWorkers.LidarConfigurations")).getAsJsonArray();
+
+                int tickTime = ((Double) configData.get("TickTime")).intValue();
+                int duration = ((Double) configData.get("Duration")).intValue();
+
+                List<MicroService> cameraServices = CameraInitializer.initializeCameras(cameraData);
+                List<MicroService> lidarServices = LiDarInitializer.initializeLidars(lidarData);
+                MicroService poseService = PoseInitializer.initializePose(poseData);
+
+                SimulationManager.startSimulation(tickTime, duration, cameraServices, lidarServices, poseService);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        private static String promptUserForPath () {
             Scanner scanner = new Scanner(System.in);
             System.out.println("Please provide the path to the configuration folder:");
-            configFolderPath = scanner.nextLine(); // קרא את הקלט מהמשתמש
-        } else {
-            // אם יש ארגומנט, השתמש בו כנתיב לתיקיית הקונפיגורציה
-            configFolderPath = args[0];
+            return scanner.nextLine();
         }
 
-        // אם לא הוזן נתיב, הצג שגיאה ויצא
-        if (configFolderPath.isEmpty()) {
-            System.err.println("Please provide a valid path to the configuration folder.");
-            return;
-        }
-        System.out.println("Configuration folder path: " + configFolderPath);// עד לפה
-
-        initializeAndStartSimulation(configFolderPath);
-
-    }
 
     private static void initializeAndStartSimulation(String configFolderPath) {
 
@@ -87,7 +91,17 @@ public class GurionRockRunner {
             initializeSimulation(tickTime, duration, cameraConfigsArray, lidarConfigsArray, poseData);
             List<MicroService> cameraServices = initializeCameras(cameraConfigsArray);
             List<MicroService> lidarServices = initializeLidars(lidarConfigsArray);
-            MicroService poseService = initializePose(poseFilePath);
+            MicroService poseService = initializePose(poseData);
+
+            MicroService timeService = new TimeService(tickTime,duration);
+            new Thread(timeService).start();
+
+
+
+            MicroService fusionSlamService = new FusionSlamService(FusionSlam.getInstance());
+            new Thread(fusionSlamService).start();
+
+
 
 
         } catch (IOException e) {
@@ -96,12 +110,95 @@ public class GurionRockRunner {
 
     }
 
-    private static void initializeSimulation(int tickTime, int duration, JsonArray cameraData, JsonArray lidarData, JsonArray poseData) {
-
-        List<Camera> cameras = new ArrayList<>();
-        List<LiDarWorkerTracker> lidars = new ArrayList<>();
+    private static MicroService initializePose(JsonArray poseData) {
         List<Pose> poses = new ArrayList<>();
 
+
+        // init poses
+        for (int i = 0; i < poseData.size(); i++) {
+            JsonObject poseConfig = poseData.get(i).getAsJsonObject();
+            int time = poseConfig.get("time").getAsInt();
+            float x = poseConfig.get("x").getAsFloat();
+            float y = poseConfig.get("y").getAsFloat();
+            float yaw = poseConfig.get("yaw").getAsFloat();
+            Pose pose = new Pose(x, y, yaw, time);
+            poses.add(pose);
+        }
+        MicroService poseService = new PoseService(new GPSIMU(0, poses));
+        //new Thread(poseService).start(); //TODO: חרדה
+        // pose data
+        for (Pose pose : poses) {
+            System.out.println("Pose Time: " + pose.getTime());
+            System.out.println("Pose X: " + pose.getX());
+            System.out.println("Pose Y: " + pose.getY());
+            System.out.println("Pose Yaw: " + pose.getYaw());
+        }
+        return poseService;
+
+    }
+
+    private static List<MicroService> initializeLidars(JsonArray lidarData) {
+        List<LiDarWorkerTracker> lidars = new ArrayList<>();
+        List<MicroService> lidarServices = new ArrayList<>();
+
+        // Initialize LiDARs
+        for (int i = 0; i < lidarData.size(); i++) {
+            JsonObject lidarConfig = lidarData.get(i).getAsJsonObject();
+
+            // Read LiDAR-specific data
+            int id = lidarConfig.get("id").getAsInt(); // LiDAR ID
+            int frequency = lidarConfig.get("frequency").getAsInt(); // LiDAR frequency
+
+            // Initialize the list of point clouds for this LiDAR
+            JsonArray pointCloudsArray = lidarConfig.getAsJsonArray("cloudPoints");
+            List<StampedCloudPoints> pointCloudsList = new ArrayList<>();
+
+            for (int j = 0; j < pointCloudsArray.size(); j++) {
+                JsonObject StampedCloudPointsConfig = pointCloudsArray.get(j).getAsJsonObject();
+                int time = StampedCloudPointsConfig.get("time").getAsInt(); // Time of point cloud generation
+                String objectId = StampedCloudPointsConfig.get("id").getAsString(); // ID of the detected object
+
+                // Extract the list of 3D points for this point cloud
+                JsonArray pointsArray = StampedCloudPointsConfig.getAsJsonArray("cloudPoints");
+                List<List<Double>> points = new ArrayList<>();
+
+                for (int k = 0; k < pointsArray.size(); k++) {
+                    JsonArray point = pointsArray.get(k).getAsJsonArray();
+                    double x = point.get(0).getAsDouble(); // X-coordinate
+                    double y = point.get(1).getAsDouble(); // Y-coordinate
+                    double z = point.get(2).getAsDouble(); // Z-coordinate
+                    List<Double> list = new LinkedList<>();
+                    list.add(x);
+                    list.add(y);
+                    list.add(z);
+                    points.add(list); // Add the 3D point to the list
+                }
+
+                // Add the stamped point cloud to the list
+                pointCloudsList.add(new StampedCloudPoints(objectId, time, points));
+            }
+
+            // Create the LiDarWorkerTracker object with all the extracted data
+            LiDarWorkerTracker lidar = new LiDarWorkerTracker(id, frequency, pointCloudsList);
+            lidars.add(lidar); // Add the LiDAR to the list
+
+            // Create a service for the LiDAR and start it in a new thread
+            MicroService LiDARService = new LiDarService(lidar);
+            new Thread(LiDARService).start(); // Start the LiDAR service
+
+        }
+        // LiDAR data
+        for (LiDarWorkerTracker lidar : lidars) {
+            System.out.println("LiDAR ID: " + lidar.getId());
+            System.out.println("LiDAR Frequency: " + lidar.getFrequency());
+        }
+        return lidarServices;
+    }
+
+    private static List<MicroService> initializeCameras(JsonArray cameraData) {
+
+        List<Camera> cameras = new ArrayList<>();
+        List<MicroService> cameraServices = new ArrayList<>();
 
         // Initialize cameras
         for (int i = 0; i < cameraData.size(); i++) {
@@ -137,69 +234,19 @@ public class GurionRockRunner {
             cameras.add(camera);// no need?
             // Create a service for the camera and start it in a new thread
             MicroService cameraService = new CameraService(camera);
-            new Thread(cameraService).start(); //TODO: חרדה
+            cameraServices.add(cameraService);
+            //new Thread(cameraService).start(); //TODO: חרדה
         }
-
-        // Initialize LiDARs
-        for (int i = 0; i < lidarData.size(); i++) {
-            JsonObject lidarConfig = lidarData.get(i).getAsJsonObject();
-
-            // Read LiDAR-specific data
-            int id = lidarConfig.get("id").getAsInt(); // LiDAR ID
-            int frequency = lidarConfig.get("frequency").getAsInt(); // LiDAR frequency
-
-            // Initialize the list of point clouds for this LiDAR
-            JsonArray pointCloudsArray = lidarConfig.getAsJsonArray("pointClouds");
-            List<TrackedObject> pointCloudsList = new ArrayList<>();
-
-            for (int j = 0; j < pointCloudsArray.size(); j++) {
-                JsonObject stampedPointCloudConfig = pointCloudsArray.get(j).getAsJsonObject();
-                int time = stampedPointCloudConfig.get("time").getAsInt(); // Time of point cloud generation
-                String objectId = stampedPointCloudConfig.get("id").getAsString(); // ID of the detected object
-
-                // Extract the list of 3D points for this point cloud
-                JsonArray pointsArray = stampedPointCloudConfig.getAsJsonArray("cloudPoints");
-                List<List<Double>> points = new ArrayList<>();
-
-                for (int k = 0; k < pointsArray.size(); k++) {
-                    JsonArray point = pointsArray.get(k).getAsJsonArray();
-                    double x = point.get(0).getAsDouble(); // X-coordinate
-                    double y = point.get(1).getAsDouble(); // Y-coordinate
-                    double z = point.get(2).getAsDouble(); // Z-coordinate
-                    List<Double> list = new LinkedList<>();
-                    list.add(x);
-                    list.add(y);
-                    list.add(z);
-                    points.add(list); // Add the 3D point to the list
-                }
-
-                // Add the stamped point cloud to the list
-                pointCloudsList.add(new TrackedObject(objectId, time, points));
-            }
-
-            // Create the LiDarWorkerTracker object with all the extracted data
-            LiDarWorkerTracker lidar = new LiDarWorkerTracker(id, frequency, pointCloudsList);
-            lidars.add(lidar); // Add the LiDAR to the list
-
-            // Create a service for the LiDAR and start it in a new thread
-            MicroService LiDARService = new LiDarService(lidar);
-            new Thread(LiDARService).start(); // Start the LiDAR service
-
-
+        // camera data
+        for (Camera camera : cameras) {
+            System.out.println("Camera ID: " + camera.getId());
+            System.out.println("Camera Frequency: " + camera.getFrequency());
+        }
+        return cameraServices;
     }
 
-        // init poses
-        for (int i = 0; i < poseData.size(); i++) {
-            JsonObject poseConfig = poseData.get(i).getAsJsonObject();
-            int time = poseConfig.get("time").getAsInt();
-            float x = poseConfig.get("x").getAsFloat();
-            float y = poseConfig.get("y").getAsFloat();
-            float yaw = poseConfig.get("yaw").getAsFloat();
-            Pose pose = new Pose(x, y, yaw, time);
-            poses.add(pose);
-        }
-        MicroService poseService = new PoseService(new GPSIMU(0, poses));
-        new Thread(poseService).start(); //TODO: חרדה
+
+    private static void initializeSimulation(int tickTime, int duration, JsonArray cameraData, JsonArray lidarData, JsonArray poseData) {
 
         MicroService fusionSlamService = new FusionSlamService(FusionSlam.getInstance());
         new Thread(fusionSlamService).start();
@@ -207,32 +254,7 @@ public class GurionRockRunner {
         MicroService timeService = new TimeService(tickTime,duration);
         new Thread(timeService).start();
 
-        // printings
-        System.out.println("Initializing simulation with the following data:");
-        System.out.println("TickTime: " + tickTime);
-        System.out.println("Duration: " + duration);
-        System.out.println("Number of cameras: " + cameras.size());
-        System.out.println("Number of LiDARs: " + lidars.size());
-        System.out.println("Number of poses: " + poses.size());
 
-        // camera data
-        for (Camera camera : cameras) {
-            System.out.println("Camera ID: " + camera.getId());
-            System.out.println("Camera Frequency: " + camera.getFrequency());
-        }
-
-        // LiDAR data
-        for (LiDarWorkerTracker lidar : lidars) {
-            System.out.println("LiDAR ID: " + lidar.getId());
-            System.out.println("LiDAR Frequency: " + lidar.getFrequency());
-        }
-        // pose data
-        for (Pose pose : poses) {
-            System.out.println("Pose Time: " + pose.getTime());
-            System.out.println("Pose X: " + pose.getX());
-            System.out.println("Pose Y: " + pose.getY());
-            System.out.println("Pose Yaw: " + pose.getYaw());
-        }
 
     }
 }
