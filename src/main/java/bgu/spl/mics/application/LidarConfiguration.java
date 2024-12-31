@@ -1,17 +1,17 @@
 package bgu.spl.mics.application;
 
 public class LidarConfiguration {
-    private int id;
+    private String id;
     private int frequency;
 
     // Constructor
-    public LidarConfiguration(int id, int frequency) {
+    public LidarConfiguration(String id, int frequency) {
         this.id = id;
         this.frequency = frequency;
     }
 
     // Getters
-    public int getId() {
+    public String getId() {
         return id;
     }
 
