@@ -15,10 +15,10 @@ public class JsonOutputGenerator {
     private int numDetectedObjects;
     private int numTrackedObjects;
     private int numLandmarks;
-    private List<LandMark> listOfLandMark;
+    private List<LandMark> landMarks;
 
     public JsonOutputGenerator(List<LandMark> list){
-        listOfLandMark = list;
+        landMarks = list;
         systemRuntime = StatisticalFolder.getInstance().getSystemRuntime();
         numDetectedObjects = StatisticalFolder.getInstance().getNumDetectedObjects();
         numTrackedObjects = StatisticalFolder.getInstance().getNumTrackedObjects();
@@ -35,5 +35,12 @@ public class JsonOutputGenerator {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void set(int i, int i1, int i2, int i3) { //TODO:למחוק כשנסיים
+        systemRuntime = i;
+        numDetectedObjects = i1;
+        numTrackedObjects = i2;
+        numLandmarks = i3;
     }
 }

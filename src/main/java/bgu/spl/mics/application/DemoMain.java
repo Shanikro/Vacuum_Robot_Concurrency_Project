@@ -27,6 +27,7 @@ public class DemoMain {
         landMarks.add(door);
 
         JsonOutputGenerator jsonOutputGenerator = new JsonOutputGenerator(landMarks);
+        jsonOutputGenerator.set(22,13,13,7);
         jsonOutputGenerator.create();
 
     }
