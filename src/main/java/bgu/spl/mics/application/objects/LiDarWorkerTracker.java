@@ -15,12 +15,12 @@ public class LiDarWorkerTracker {
     private STATUS status;
     private List<TrackedObject> lastTrackedObjects;
 
-    public LiDarWorkerTracker(int id, int frequency){
+    public LiDarWorkerTracker(int id, int frequency, List<TrackedObject> lastTrackedObjects){
 
         this.id = id;
         this.frequency =  frequency;
         this.status = STATUS.UP;
-        this.lastTrackedObjects = new LinkedList<>();
+        this.lastTrackedObjects = lastTrackedObjects;
 
     }
 

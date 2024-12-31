@@ -14,11 +14,11 @@ public class Camera {
     private STATUS status;
     private List<StampedDetectedObjects> detectedObjectsList;
 
-    public Camera(int id, int frequency) {
+    public Camera(int id, int frequency, List<StampedDetectedObjects> detectedObjectsList) {
         this.id = id;
         this.frequency =  frequency;
         this.status = STATUS.UP;
-        this.detectedObjectsList =  new LinkedList<>();
+        this.detectedObjectsList = detectedObjectsList;
 
     }
 
@@ -30,15 +30,6 @@ public class Camera {
         return frequency;
     }
 
-    public List<StampedDetectedObjects> detectObjects(int tick) {
-        List<StampedDetectedObjects> output = new LinkedList<>();
-        for (StampedDetectedObjects o : detectedObjectsList){
-            if(o.getTime() == tick){
-                output.add(o);
-            }
-        }
-        return output;
-    }
     public List<StampedDetectedObjects> getDetectedObjectsList(){
         return detectedObjectsList;
     }

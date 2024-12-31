@@ -14,10 +14,10 @@ public class GPSIMU {
     private STATUS status;
     private List<Pose> poseList;
 
-    public GPSIMU(int currentTick){
+    public GPSIMU(int currentTick, List<Pose> poseList){
         this.currentTick = currentTick;
         this.status = STATUS.UP;
-        this.poseList = new LinkedList<>();
+        this.poseList = poseList;
     }
 
     public int getCurrentTick() {

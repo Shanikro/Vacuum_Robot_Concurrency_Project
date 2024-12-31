@@ -12,11 +12,11 @@ public class StampedCloudPoints {
     private int time;
     private List<List<Double>> cloudPoints;
 
-    public StampedCloudPoints(String id, int time){
+    public StampedCloudPoints(String id, int time,List<List<Double>> cloudPoints ){
 
         this.id = id;
         this.time = time;
-        this.cloudPoints = new LinkedList<>();
+        this.cloudPoints = cloudPoints;
 
     }
 
