@@ -26,6 +26,7 @@ public class FusionSlamService extends MicroService {
     private FusionSlam fusionSlam;
     private int currentTick;
     private final Map<Integer, List<TrackedObject>> pendingTrackedObjects; //A data structure that temporarily stores objects whose corresponding Pose not arrived yet.
+    private int objectsInAction; //When equals 0, the FusionSlam should terminate
 
     /**
      * Constructor for FusionSlamService.
@@ -37,6 +38,7 @@ public class FusionSlamService extends MicroService {
         this.fusionSlam = fusionSlam;
         this.currentTick = 0;
         this.pendingTrackedObjects = new ConcurrentHashMap<>();
+        this.objectsInAction = 0;
     }
 
     /**
@@ -46,6 +48,11 @@ public class FusionSlamService extends MicroService {
      */
     @Override
     protected void initialize() {
+
+        //Handle RegisterEvent
+        subscribeEvent(RegisterEvent.class, event ->{
+            objectsInAction++;
+        });
 
         //Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
@@ -87,12 +94,32 @@ public class FusionSlamService extends MicroService {
 
         //Handle TerminatedBroadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
-            terminate();
+
+            if(terminatedBroadcast.getSenderId().equals("Time Service")){ //If the duration has passed, finish
+                makeOutputJson();
+                terminate();
+            }
+
+            else {
+                objectsInAction--;
+                if(objectsInAction == 0){ //If all the objects have no more data , finish
+                    makeOutputJson();
+                    terminate();
+                }
+            }
         });
 
         //Handle CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
+            makeOutputErrorJson();
             terminate();
         });
+    }
+
+
+    private void makeOutputErrorJson() {
+    }
+
+    private void makeOutputJson() {
     }
 }

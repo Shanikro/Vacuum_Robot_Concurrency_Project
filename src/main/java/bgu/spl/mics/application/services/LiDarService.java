@@ -32,7 +32,7 @@ public class LiDarService extends MicroService {
         super("lidarWorker" + LiDarWorkerTracker.getId());
         this.LiDar = LiDarWorkerTracker;
         this.currentTick = 0;
-        this.stampedPointsUntilFinish = LiDarDataBase.getInstance("").getCloudPoints().size(); //TODO
+        this.stampedPointsUntilFinish = LiDarDataBase.getInstance().getCloudPoints().size();
     }
 
     /**
@@ -43,6 +43,10 @@ public class LiDarService extends MicroService {
     @Override
     protected void initialize() {
         System.out.println("LiDar " + getName() + " started");
+
+        //Notify FusionSlam that new object registered
+        sendEvent(new RegisterEvent(getName()));
+        System.out.println(getName() + "sent Register event");
 
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
@@ -156,7 +160,7 @@ public class LiDarService extends MicroService {
 
         LinkedList<CloudPoint> output = new LinkedList<>();
 
-        List<StampedCloudPoints> dataBase = LiDarDataBase.getInstance("").getCloudPoints(); //TODO
+        List<StampedCloudPoints> dataBase = LiDarDataBase.getInstance().getCloudPoints();
 
         for (StampedCloudPoints s : dataBase) { //Find the corresponding StampedCloudPoints According to detectedTime + frequency
 

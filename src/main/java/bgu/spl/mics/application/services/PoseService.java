@@ -36,6 +36,10 @@ public class PoseService extends MicroService {
     protected void initialize() {
         System.out.println("Pose " + getName() + " started");
 
+        //Notify FusionSlam that new object registered
+        sendEvent(new RegisterEvent(getName()));
+        System.out.println(getName() + "sent Register event");
+
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
 
@@ -47,14 +51,16 @@ public class PoseService extends MicroService {
                     break;
                 }
             }
+
             if(currentPose != null && location.getStatus()== STATUS.UP) {
                 sendEvent(new PoseEvent(getName(), currentPose)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
                 System.out.println("gps" + getName() + "sent pose event");
             }
 
-            // Handle errors
-            if (!(location.getStatus() == STATUS.UP)) {
-                System.out.println("Sender " + getName() + " stopped");
+            //In case that the Pose finish
+            if(currentPose == null){
+                location.setStatus(STATUS.DOWN);
+                System.out.println("Sender " + getName() + " terminated!");
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
             }

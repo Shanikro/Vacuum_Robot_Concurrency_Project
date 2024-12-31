@@ -25,14 +25,17 @@ public class LiDarDataBase {
     /**
      * Returns the singleton instance of LiDarDataBase.
      *
-     * @param filePath The path to the LiDAR data file.
      * @return The singleton instance of LiDarDataBase.
      */
-    public static LiDarDataBase getInstance(String filePath) {
+    public static LiDarDataBase getInstance() {
         return singletonHolder.INSTANCE;
     }
 
     public List<StampedCloudPoints> getCloudPoints() {
         return cloudPoints;
+    }
+
+    public void addCloudPoints(StampedCloudPoints stampedCloudPoints) {
+        cloudPoints.add(stampedCloudPoints);
     }
 }

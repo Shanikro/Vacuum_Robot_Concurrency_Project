@@ -2,10 +2,7 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.messages.CrashedBroadcast;
-import bgu.spl.mics.application.messages.DetectObjectsEvent;
-import bgu.spl.mics.application.messages.TerminatedBroadcast;
-import bgu.spl.mics.application.messages.TickBroadcast;
+import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.*;
 
 /**
@@ -42,6 +39,10 @@ public class CameraService extends MicroService {
     @Override
     protected void initialize() {
         System.out.println("Camera " + getName() + " started");
+
+        //Notify FusionSlam that new object registered
+        sendEvent(new RegisterEvent(getName()));
+        System.out.println(getName() + "sent Register event");
 
         //Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
