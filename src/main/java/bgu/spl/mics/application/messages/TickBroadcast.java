@@ -9,12 +9,10 @@ public class TickBroadcast implements Broadcast {
 
     private String senderId;
     private int tick;
-    private int duration;
 
-    public TickBroadcast(String senderId,int tick,int duration) {
+    public TickBroadcast(String senderId,int tick) {
         this.senderId = senderId;
         this.tick = tick;
-        this.duration = duration;
     }
 
     public String getSenderId() {
@@ -23,9 +21,5 @@ public class TickBroadcast implements Broadcast {
 
     public int getTime() {
         return tick;
-    }
-
-    public int getDuration(){
-        return duration;
     }
 }

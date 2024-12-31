@@ -1,10 +1,18 @@
 package bgu.spl.mics.application.objects;
 
+import bgu.spl.mics.application.JsonOutputGenerator;
+import bgu.spl.mics.application.messages.PoseEvent;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages the fusion of sensor data for simultaneous localization and mapping (SLAM).
@@ -16,10 +24,18 @@ public class FusionSlam {
     private List<LandMark> landMarks;
     private List<Pose> poses;
 
+    private int currentTick;
+    private final Map<Integer, List<TrackedObject>> pendingTrackedObjects; //A data structure that temporarily stores objects whose corresponding Pose not arrived yet.
+    private int sensorsInAction; //When equals 0, the FusionSlam should terminate
+
     //Private constructor
     private FusionSlam() {
         landMarks = new ArrayList<>();
         poses = new ArrayList<>();
+
+        this.pendingTrackedObjects = new ConcurrentHashMap<>();
+        this.sensorsInAction = 0;
+        this.currentTick = 0;
     }
 
     //Internal static class that holds the Singleton
@@ -38,6 +54,10 @@ public class FusionSlam {
     //Getters
     public List<LandMark> getLandMarks(){
         return landMarks;
+    }
+
+    public int getSensorsInAction(){
+        return sensorsInAction;
     }
 
     public Pose getPoseByTime(int time) {
@@ -59,6 +79,65 @@ public class FusionSlam {
     public void addPose(Pose pose){
         poses.add(pose);
     }
+
+    public void handleRegister() {
+        sensorsInAction++;
+    }
+
+    public void handleTick(int time) {
+        currentTick = time;
+    }
+
+
+    public void handleTrackedObjects(TrackedObjectsEvent trackedObjectsEvent) {
+
+        int time = trackedObjectsEvent.getTrackedObjects().get(0).getTime(); //Check the time that tracked
+        Pose matchedPose = getPoseByTime(time);
+
+        //In case the corresponding Pose has not appeared yet.
+        if (matchedPose == null){
+            pendingTrackedObjects.put(time, trackedObjectsEvent.getTrackedObjects()); //Save the objects for later
+        }
+
+        //In case the Pose already appear, update the global Map.
+        else{
+            for (TrackedObject object : trackedObjectsEvent.getTrackedObjects()) {
+                updateMap(object, matchedPose);
+            }
+        }
+
+    }
+
+    public void handlePose(PoseEvent poseEvent) {
+        int time = poseEvent.getPose().getTime(); //Pose time
+        addPose(poseEvent.getPose()); //Add Pose to the pose list of FusionSlam
+
+        //Check if there is TrackedObjects that waiting for the pose
+        if (pendingTrackedObjects.containsKey(time)) {
+            List<TrackedObject> matchedTrackedObjects = pendingTrackedObjects.remove(time); //Remove them
+            for (TrackedObject object : matchedTrackedObjects) {
+                updateMap(object, poseEvent.getPose());
+            }
+        }
+    }
+
+    public void handleTerminate() {
+        sensorsInAction--;
+    }
+
+
+    public void makeOutputErrorJson() {
+
+
+
+
+    }
+
+    public void makeOutputJson() {
+        JsonOutputGenerator outputData = new JsonOutputGenerator(landMarks);
+        outputData.create();
+    }
+
 
     /**
      * Manages the addition of new landmarks to the map.

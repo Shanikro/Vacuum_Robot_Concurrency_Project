@@ -1,20 +1,17 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.GPSIMU;
 import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.STATUS;
-import bgu.spl.mics.application.objects.TrackedObject;
 
 /**
  * PoseService is responsible for maintaining the robot's current pose (position and orientation)
  * and broadcasting PoseEvents at every tick.
  */
 public class PoseService extends MicroService {
-    private int currentTick;
-    private GPSIMU location;
+    private GPSIMU gpsimu;
 
     /**
      * Constructor for PoseService.
@@ -23,9 +20,7 @@ public class PoseService extends MicroService {
      */
     public PoseService(GPSIMU gpsimu) {
         super("Pose Service");
-        this.location = gpsimu;
-        this.currentTick = 0;
-
+        this.gpsimu = gpsimu;
     }
 
     /**
@@ -43,23 +38,15 @@ public class PoseService extends MicroService {
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
 
-            currentTick = tick.getTime();
-            Pose currentPose = null;
-            for(Pose p : location.getPoseList()){
-                if(p.getTime() == currentTick){
-                    currentPose = p;
-                    break;
-                }
-            }
+            Pose pose = gpsimu.handleTick(tick.getTime());
 
-            if(currentPose != null && location.getStatus()== STATUS.UP) {
-                sendEvent(new PoseEvent(getName(), currentPose)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
+            if(gpsimu.getStatus() == STATUS.UP) {
+                sendEvent(new PoseEvent(getName(), pose));
                 System.out.println("gps" + getName() + "sent pose event");
             }
 
-            //In case that the Pose finish
-            if(currentPose == null){
-                location.setStatus(STATUS.DOWN);
+            //In case that no more data to read, finish
+            if(gpsimu.getStatus() == STATUS.DOWN){
                 System.out.println("Sender " + getName() + " terminated!");
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
