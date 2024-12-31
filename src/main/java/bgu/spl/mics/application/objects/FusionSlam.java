@@ -122,6 +122,10 @@ public class FusionSlam {
 
 
     public void makeOutputErrorJson() {
+
+
+
+
     }
 
     public void makeOutputJson() {
