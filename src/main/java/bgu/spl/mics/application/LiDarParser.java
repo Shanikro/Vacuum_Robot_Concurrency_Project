@@ -1,0 +1,55 @@
+package bgu.spl.mics.application;
+
+import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.objects.LiDarDataBase;
+import bgu.spl.mics.application.objects.LiDarWorkerTracker;
+import bgu.spl.mics.application.objects.StampedCloudPoints;
+import bgu.spl.mics.application.services.LiDarService;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+public class LiDarParser {
+    public static List<MicroService> initLiDarWorkers(JsonObject config) throws IOException {
+        Gson gson = new Gson();
+        JsonObject lidarConfig = config.getAsJsonObject("LiDarWorkers");
+        JsonArray lidarConfigs = lidarConfig.getAsJsonArray("LidarConfigurations");
+
+        List<MicroService> LiDarServices = new LinkedList<>();
+        List<LiDarWorkerTracker> lidarWorkers = new ArrayList<>();
+        for (JsonElement lidarElement : lidarConfigs) {
+            JsonObject lidarConfigObj = lidarElement.getAsJsonObject();
+            int id = lidarConfigObj.get("id").getAsInt();
+            int frequency = lidarConfigObj.get("frequency").getAsInt();
+
+            LiDarWorkerTracker lidarWorker = new LiDarWorkerTracker(id, frequency);
+            lidarWorkers.add(lidarWorker);
+            LiDarServices.add(new LiDarService(lidarWorker));
+        }
+        System.out.println("LiDar Workers initialized: " + lidarWorkers.size());
+        return LiDarServices;
+    }
+
+    public static void loadLiDarDatabase(JsonObject config) throws IOException {
+        Gson gson = new Gson();
+        String lidarDataPath = config.getAsJsonObject("LiDarWorkers").get("lidars_data_path").getAsString();
+        Type lidarDataType = new TypeToken<List<StampedCloudPoints>>() {}.getType();
+        lidarDataPath = "C:\\Users\\gayaa\\Downloads\\Skeleton\\example_input_2\\lidar_data.json"; //TODO
+        List<StampedCloudPoints> lidarData = gson.fromJson(new FileReader(lidarDataPath), lidarDataType);
+
+        LiDarDataBase database = LiDarDataBase.getInstance();
+        for (StampedCloudPoints point : lidarData) {
+            database.addCloudPoints(point);
+        }
+        System.out.println("LiDar database loaded with: " + database.getCloudPoints().size() + " entries");
+    }
+}
