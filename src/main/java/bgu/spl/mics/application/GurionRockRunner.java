@@ -33,11 +33,11 @@ public class GurionRockRunner {
      * @param args Command-line arguments. The first argument is expected to be the path to the configuration file.
      */
     public static void main(String[] args) {
-        //String configFolderPath = args.length > 0 ? args[0] : promptUserForPath();
+        String configFolderPath = args.length > 0 ? args[0] : promptUserForPath();
 
         Gson gson = new Gson();
 
-        try (FileReader configReader = new FileReader("C:\\Users\\gayaa\\Downloads\\Skeleton\\example_input_2\\configuration_file.json")) {
+        try (FileReader configReader = new FileReader(configFolderPath)) {
             // Read main configuration file
             JsonObject config = JsonParser.parseReader(configReader).getAsJsonObject();
 

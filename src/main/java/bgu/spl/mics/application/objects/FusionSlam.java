@@ -174,18 +174,16 @@ public class FusionSlam {
      */
     private List<CloudPoint> mergeLists(List<CloudPoint> prevList, List<CloudPoint> newList) {
         List<CloudPoint> output = new LinkedList<>();
-        int index = 0;
-        while (prevList.get(index) != null && newList.get(index) != null){
-            output.add(makeAverage(prevList.get(index), newList.get(index)));
-            index++;
+        int minSize = Math.min(prevList.size(), newList.size());
+
+        for (int i = 0; i < minSize; i++) {
+            output.add(makeAverage(prevList.get(i), newList.get(i)));
         }
-        if(prevList.size() > newList.size()){
-            while (prevList.get(index) != null)
-                output.add(prevList.get(index));
-        }
-        else {
-            while (newList.get(index) != null)
-                output.add(newList.get(index));
+
+        if (prevList.size() > newList.size()) {
+            output.addAll(prevList.subList(minSize, prevList.size()));
+        } else {
+            output.addAll(newList.subList(minSize, newList.size()));
         }
         return output;
     }
