@@ -41,7 +41,6 @@ public class TimeService extends MicroService {
         System.out.println("Sender " + getName() + " started");
 
         while(currentTick<=duration) { //While we haven't reached duration time, we will send TickBroadcast to all listeners.
-
             try {
                 // Wait for TickTime between two Tick Broadcast
                 Thread.sleep(Duration.ofSeconds(tickTime).toMillis());
@@ -50,7 +49,7 @@ public class TimeService extends MicroService {
                 Thread.currentThread().interrupt(); //Restore the interrupted status
                 break; //Exit the loop if the thread is interrupted
             }
-
+            System.out.println("time sends tick broadcast");
             sendBroadcast(new TickBroadcast(getName(),currentTick));
             currentTick++;
 
