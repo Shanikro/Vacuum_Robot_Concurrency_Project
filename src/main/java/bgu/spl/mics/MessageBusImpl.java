@@ -114,8 +114,10 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void sendBroadcast(Broadcast b) {
 		Queue<MicroService> microServiceList = broadcasts.get(b.getClass());
-		for (MicroService m : microServiceList) {
+		if(microServiceList != null) {
+			for (MicroService m : microServiceList) {
 				addMsg(m, b);
+			}
 		}
 	}
 

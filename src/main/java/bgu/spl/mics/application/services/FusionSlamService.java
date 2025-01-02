@@ -58,7 +58,7 @@ public class FusionSlamService extends MicroService {
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
 
             if(terminatedBroadcast.getSenderId().equals("Time Service")){ //If the duration has passed, finish
-                System.out.println(getName() + " terminated by" + terminatedBroadcast.getSenderId());
+                System.out.println(getName() + " terminated by " + terminatedBroadcast.getSenderId());
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 fusionSlam.makeOutputJson();
                 terminate();
