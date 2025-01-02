@@ -134,12 +134,13 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
-		Queue<MicroService> microServiceQueue = events.get(e.getClass());
-		synchronized (microServiceQueue) {
-			if (microServiceQueue.isEmpty()) { //if nobody subscribe this event
-				return null;
-			}
 
+		Queue<MicroService> microServiceQueue = events.get(e.getClass());
+
+		if (microServiceQueue == null || microServiceQueue.isEmpty()) {
+			return null;
+		}
+		synchronized (microServiceQueue) {
 			MicroService MS = microServiceQueue.remove(); //Take the next Micro-service according to round-robin fashion.
 			addMsg(MS,e);
 			microServiceQueue.add(MS); //Returns the Micro-service according to round-robin fashion.
