@@ -34,10 +34,8 @@ public class FusionSlamTest {
         Pose pose1 = new Pose(0.0f, 0.0f, 0.0f, 1);
         Pose pose2 = new Pose(1.0f, 1.0f, 45.0f, 2);
 
-        TrackedObject trackedObject1 = new TrackedObject("Wall_1", 1, "Wall",
-                Arrays.asList(new CloudPoint(1.0, 2.0)));
-        TrackedObject trackedObject2 = new TrackedObject("Wall_1", 2, "Wall",
-                Arrays.asList(new CloudPoint(2.0, 3.0)));
+        TrackedObject trackedObject1 = new TrackedObject("Wall_1", 1, "Wall", Arrays.asList(new CloudPoint(1.0, 2.0)));
+        TrackedObject trackedObject2 = new TrackedObject("Wall_1", 2, "Wall", Arrays.asList(new CloudPoint(2.0, 3.0)));
 
         fusionSlam.updateMap(trackedObject1, pose1);
         fusionSlam.updateMap(trackedObject2, pose2);
@@ -53,6 +51,33 @@ public class FusionSlamTest {
 
         assertEquals(0.6465, points.get(0).getX(), 0.001, "X coordinate should be averaged");
         assertEquals(3.2678, points.get(0).getY(), 0.001, "Y coordinate should be averaged");
+    }
+
+    @Test
+    public void testUpdateMap_ExistingLandmark2() {
+        Pose pose1 = new Pose(0.0f, 0.0f, 0.0f, 1);
+        Pose pose2 = new Pose(1.0f, 1.0f, 45.0f, 2);
+
+        TrackedObject trackedObject1 = new TrackedObject("Wall_1", 1, "Wall", Arrays.asList(new CloudPoint(1.0, 2.0)));
+        TrackedObject trackedObject2 = new TrackedObject("Wall_1", 2, "Wall", Arrays.asList(new CloudPoint(2.0, 3.0), new CloudPoint(4.0, 5.0)));
+
+        fusionSlam.updateMap(trackedObject1, pose1);
+        fusionSlam.updateMap(trackedObject2, pose2);
+
+        List<LandMark> landmarks = fusionSlam.getLandMarks();
+        assertEquals(1, landmarks.size(), "Landmarks size should still be 1");
+
+        assertEquals("Wall_1", landmarks.get(0).getId(), "Landmark ID should match");
+
+        List<CloudPoint> points = landmarks.get(0).getCoordinates();
+        assertEquals(2, points.size(), "Coordinates should contain 2 points after merging");
+
+        assertEquals(0.6465, points.get(0).getX(), 0.001, "X coordinate of first point should be averaged");
+        assertEquals(3.2678, points.get(0).getY(), 0.001, "Y coordinate of first point should be averaged");
+
+        assertEquals(0.2928, points.get(1).getX(), 0.001, "X coordinate of second point should matches the second point after calculating the global coordinate");
+        assertEquals(7.3639, points.get(1).getY(), 0.001, "Y coordinate of second point should matches the second point after calculating the global coordinate");
+
     }
 
 
