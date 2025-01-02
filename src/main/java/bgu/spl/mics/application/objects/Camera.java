@@ -21,6 +21,7 @@ public class Camera {
 
     private int currentTick;
     private int stampedObjectUntilFinish;
+    private String error;
 
     public Camera(int id, int frequency, List<StampedDetectedObjects> detectedObjectsList) {
         this.id = id;
@@ -30,8 +31,9 @@ public class Camera {
 
         this.currentTick = 0;
         this.stampedObjectUntilFinish = detectedObjectsList.size();
-
     }
+
+    //Getters
 
     public int getId() {
         return id;
@@ -48,6 +50,10 @@ public class Camera {
     public STATUS getStatus() {
         return status;
     }
+
+    public String getError() { return error; }
+
+    //Method
 
     public void setStatus(STATUS status) {
         this.status = status;
@@ -71,7 +77,7 @@ public class Camera {
             for (DetectedObject o : detectedObjectsAtTime.getDetectedObjects()) {
                 if (o.getId().equals("ERROR")) {
                     setStatus(STATUS.ERROR);
-                    //TODO: להוסיף לג'ייסון כוול התיאור
+                    error = o.getDescription();
                 }
                 break;
             }
@@ -92,6 +98,7 @@ public class Camera {
 
         return detectedObjectsAtTime;
     }
+
 }
 
 

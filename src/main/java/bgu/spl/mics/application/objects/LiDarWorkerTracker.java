@@ -7,6 +7,7 @@ import bgu.spl.mics.application.messages.TrackedObjectsEvent;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * LiDarWorkerTracker is responsible for managing a LiDAR worker.
@@ -136,7 +137,7 @@ public class LiDarWorkerTracker {
 
     private List<CloudPoint> getCloudPointList(DetectedObject detectedObject, int detectedTime) {
 
-        LinkedList<CloudPoint> output = new LinkedList<>();
+        List<CloudPoint> output = new LinkedList<>();
 
         List<StampedCloudPoints> dataBase = LiDarDataBase.getInstance().getCloudPoints();
 
@@ -146,7 +147,6 @@ public class LiDarWorkerTracker {
             if (s.getId().equals("ERROR")) {
                 setStatus(STATUS.ERROR);
                 break;
-                //TODO: להוסיף לג'ייסון כוול התיאור
             }
 
             //If everything OK

@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import bgu.spl.mics.application.JsonOutputErrorGenerator;
 import bgu.spl.mics.application.JsonOutputGenerator;
 import bgu.spl.mics.application.messages.PoseEvent;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
@@ -84,11 +85,6 @@ public class FusionSlam {
         sensorsInAction++;
     }
 
-    public void handleTick(int time) {
-        currentTick = time;
-    }
-
-
     public void handleTrackedObjects(TrackedObjectsEvent trackedObjectsEvent) {
 
         int time = trackedObjectsEvent.getTrackedObjects().get(0).getTime(); //Check the time that tracked
@@ -126,11 +122,9 @@ public class FusionSlam {
     }
 
 
-    public void makeOutputErrorJson() {
-
-
-
-
+    public void makeOutputErrorJson(Object object) {
+        JsonOutputErrorGenerator outputData = new JsonOutputErrorGenerator(object,poses,new StatisticalFolderAndLandmarks(StatisticalFolder.getInstance(),landMarks));
+        outputData.create();
     }
 
     public void makeOutputJson() {

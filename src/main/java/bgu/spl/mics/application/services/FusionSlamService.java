@@ -43,11 +43,6 @@ public class FusionSlamService extends MicroService {
             fusionSlam.handleRegister();
         });
 
-        //Handle TickBroadcast
-        subscribeBroadcast(TickBroadcast.class, tick -> {
-            fusionSlam.handleTick(tick.getTime());
-        });
-
         //Handle TrackedObjectsEvent
         subscribeEvent(TrackedObjectsEvent.class, trackedObjectsEvent ->{
             fusionSlam.handleTrackedObjects(trackedObjectsEvent);
@@ -81,7 +76,7 @@ public class FusionSlamService extends MicroService {
         //Handle CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
             System.out.println(getName() + " crashed by " + crashedBroadcast.getSenderId());
-            fusionSlam.makeOutputErrorJson();
+            fusionSlam.makeOutputErrorJson(crashedBroadcast.getObject());
             terminate();
         });
     }
