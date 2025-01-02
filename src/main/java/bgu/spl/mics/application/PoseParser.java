@@ -11,11 +11,10 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 public class PoseParser {
-    public static List<Pose> loadPoseData(JsonObject config) throws IOException {
+    public static List<Pose> loadPoseData(JsonObject config, String basePath) throws IOException {
         Gson gson = new Gson();
-        String posePath = config.get("poseJsonFile").getAsString();
+        String posePath = basePath + "\\" + config.get("poseJsonFile").getAsString();
         Type poseType = new TypeToken<List<Pose>>() {}.getType();
-        posePath = "C:\\Users\\gayaa\\Downloads\\Skeleton\\example_input_2\\pose_data.json";
         List<Pose> poses = gson.fromJson(new FileReader(posePath), poseType);
         System.out.println("Poses loaded: " + poses.size());
 

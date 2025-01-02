@@ -39,11 +39,10 @@ public class LiDarParser {
         return LiDarServices;
     }
 
-    public static void loadLiDarDatabase(JsonObject config) throws IOException {
+    public static void loadLiDarDatabase(JsonObject config, String basePath) throws IOException {
         Gson gson = new Gson();
-        String lidarDataPath = config.getAsJsonObject("LiDarWorkers").get("lidars_data_path").getAsString();
+        String lidarDataPath = basePath + "\\" + config.getAsJsonObject("LiDarWorkers").get("lidars_data_path").getAsString();
         Type lidarDataType = new TypeToken<List<StampedCloudPoints>>() {}.getType();
-        lidarDataPath = "C:\\Users\\gayaa\\Downloads\\Skeleton\\example_input_2\\lidar_data.json"; //TODO
         List<StampedCloudPoints> lidarData = gson.fromJson(new FileReader(lidarDataPath), lidarDataType);
 
         LiDarDataBase database = LiDarDataBase.getInstance();

@@ -34,6 +34,17 @@ public class MessageBusImpl implements MessageBus {
 		return singletonHolder.INSTANCE;
 	}
 
+	/**
+	 * Subscribes a microservice to receive events of a specific type.
+	 *
+	 * @param type The class type of the event to subscribe to.
+	 * @param m    The microservice subscribing to the event.
+	 *
+	 * @pre type != null
+	 * @pre m != null
+	 * @post events.containsKey(type)
+	 * @post events.get(type).contains(m)
+	 */
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
 		if(events.containsKey(type)){
@@ -46,6 +57,17 @@ public class MessageBusImpl implements MessageBus {
 		}
 	}
 
+	/**
+	 * Subscribes a microservice to receive broadcasts of a specific type.
+	 *
+	 * @param type The class type of the broadcast to subscribe to.
+	 * @param m    The microservice subscribing to the broadcast.
+	 *
+	 * @pre type != null
+	 * @pre m != null
+	 * @post broadcasts.containsKey(type)
+	 * @post broadcasts.get(type).contains(m)
+	 */
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
 		if(broadcasts.containsKey(type)){
@@ -58,6 +80,18 @@ public class MessageBusImpl implements MessageBus {
 		}
 	}
 
+	/**
+	 * Completes an event and resolves its associated future with the given result.
+	 *
+	 * @param e      The event to complete.
+	 * @param result The result to resolve the event's future with.
+	 *
+	 * @pre e != null
+	 * @pre eventFuture.containsKey(e)
+	 * @post eventFuture.get(e).isDone() == true
+	 * @post eventFuture.get(e).get() == result
+	 * @post !eventFuture.containsKey(e)
+	 */
 	@Override
 	public <T> void complete(Event<T> e, T result) {
 		Future<T> future = (Future<T>) eventFuture.get(e);
@@ -68,6 +102,15 @@ public class MessageBusImpl implements MessageBus {
 		}
 
 
+	/**
+	 * Sends a broadcast message to all subscribed microservices.
+	 *
+	 * @param b The broadcast message to send.
+	 *
+	 * @pre b != null
+	 * @pre broadcasts.containsKey(b.getClass())
+	 * @post Each microservice subscribed to the broadcast receives the message.
+	 */
 	@Override
 	public void sendBroadcast(Broadcast b) {
 		Queue<MicroService> microServiceList = broadcasts.get(b.getClass());
@@ -76,6 +119,19 @@ public class MessageBusImpl implements MessageBus {
 		}
 	}
 
+	/**
+	 * Sends an event to a subscribed microservice using a round-robin fashion.
+	 *
+	 * @param e The event to send.
+	 * @param <T> The type of the result expected from the event.
+	 *
+	 * @pre e != null
+	 * @pre events.containsKey(e.getClass())
+	 * @pre events.get(e.getClass()).size() > 0
+	 * @post Future object associated with the event is created.
+	 * @post The event is assigned to the next microservice in the round-robin order.
+	 * @return A Future object that can be used to retrieve the result of processing the event.
+	 */
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
 		Queue<MicroService> microServiceQueue = events.get(e.getClass());
@@ -95,6 +151,15 @@ public class MessageBusImpl implements MessageBus {
 		}
 	}
 
+	/**
+	 * Registers a microservice to the message bus.
+	 *
+	 * @param m The microservice to register.
+	 *
+	 * @pre m != null
+	 * @post microServices.containsKey(m)
+	 * @post microServices.get(m).isEmpty()
+	 */
 	@Override
 	public synchronized void register(MicroService m) {
 		if(!microServices.containsKey(m)){
@@ -102,6 +167,16 @@ public class MessageBusImpl implements MessageBus {
 		}
 	}
 
+	/**
+	 * Unregisters a microservice from the message bus, removing it from all subscriptions.
+	 *
+	 * @param m The microservice to unregister.
+	 *
+	 * @pre m != null
+	 * @pre microServices.containsKey(m)
+	 * @post !microServices.containsKey(m)
+	 * @post All references to m are removed from events and broadcasts.
+	 */
 	@Override
 	public void unregister(MicroService m) {
 
@@ -120,6 +195,16 @@ public class MessageBusImpl implements MessageBus {
 		}
 	}
 
+	/**
+	 * Blocks until a message is available for the given microservice, then retrieves it.
+	 *
+	 * @param m The microservice waiting for a message.
+	 * @return The next message available for the given microservice.
+	 *
+	 * @pre m != null
+	 * @pre microServices.containsKey(m)
+	 * @post microServices.get(m).size() == @pre(microServices.get(m).size()) - 1
+	 */
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
 		synchronized (microServices) {

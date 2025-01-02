@@ -10,6 +10,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -41,17 +42,20 @@ public class GurionRockRunner {
             // Read main configuration file
             JsonObject config = JsonParser.parseReader(configReader).getAsJsonObject();
 
+            File configFile = new File(configFolderPath);
+            String basePath = configFile.getParent(); // Get the parent directory of the config file
+
             // Initialize Cameras
-            List<MicroService> cameraServices = CameraParser.initCameras(config);
+            List<MicroService> cameraServices = CameraParser.initCameras(config,basePath);
 
             // Initialize LiDar Workers
             List<MicroService> LiDarServices = LiDarParser.initLiDarWorkers(config);
 
             // Load LiDar DataBase
-            LiDarParser.loadLiDarDatabase(config);
+            LiDarParser.loadLiDarDatabase(config, basePath);
 
             // Load Pose Data
-            List<Pose> poses = PoseParser.loadPoseData(config);
+            List<Pose> poses = PoseParser.loadPoseData(config, basePath);
 
             // Load TickTime and Duration
             int tickTime = config.get("TickTime").getAsInt();

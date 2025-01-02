@@ -20,14 +20,13 @@ import java.util.Map;
 
 public class CameraParser {
 
-    public static List<MicroService> initCameras(JsonObject config) throws IOException {
+    public static List<MicroService> initCameras(JsonObject config, String basePath) throws IOException {
         Gson gson = new Gson();
         JsonObject camerasConfig = config.getAsJsonObject("Cameras");
         JsonArray cameraConfigs = camerasConfig.getAsJsonArray("CamerasConfigurations");
-        String cameraDataPath = camerasConfig.get("camera_datas_path").getAsString();
+        String cameraDataPath = basePath + "\\" + camerasConfig.get("camera_datas_path").getAsString();
 
         Type cameraDataType = new TypeToken<Map<String, List<StampedDetectedObjects>>>() {}.getType();
-        cameraDataPath = "C:\\Users\\gayaa\\Downloads\\Skeleton\\example_input_2\\camera_data.json"; //TODO
         Map<String, List<StampedDetectedObjects>> cameraData = gson.fromJson(new FileReader(cameraDataPath), cameraDataType);
 
         List<MicroService> cameraServices = new LinkedList<>();
