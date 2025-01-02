@@ -6,14 +6,16 @@ import com.google.gson.GsonBuilder;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 public class JsonOutputErrorGenerator {
     private String error;
     private String faultySensor;
-    private Map<String,List<StampedDetectedObjects>> lastCamerasFrame;
-    private Map<String,List<TrackedObject>> lastLiDarWorkerTrackersFrame;
+    private Map<String,StampedDetectedObjects> lastCamerasFrame = new HashMap<>();
+    private Map<String,TrackedObject> lastLiDarWorkerTrackersFrame = new HashMap<>();
     private List<Pose> poses;
     private StatisticalFolderAndLandmarks statistics;
 
@@ -35,8 +37,18 @@ public class JsonOutputErrorGenerator {
         }
 
         //lastCamerasFrame filed, lastLiDarWorkerTrackersFrame filed
+        StatisticalFolder statisticalFolder = StatisticalFolder.getInstance();
+        if(!statisticalFolder.getCameraList().isEmpty()) {
+            for (Camera c : statisticalFolder.getCameraList()) {
+                lastCamerasFrame.put("Camera" + c.getId(), c.getLastStampedDetectedObject());
+            }
+        }
 
-
+        if(!statisticalFolder.getLiDarList().isEmpty()) {
+            for (LiDarWorkerTracker l : statisticalFolder.getLiDarList()) {
+                lastLiDarWorkerTrackersFrame.put("LiDarWorkerTracker" + l.getId(), l.getLastTrackedObject());
+            }
+        }
 
     }
 

@@ -23,6 +23,7 @@ public class LiDarWorkerTracker {
 
     private int currentTick;
     private int stampedPointsUntilFinish;
+    private TrackedObject lastTrackedObject;
 
     public LiDarWorkerTracker(int id, int frequency){
 
@@ -33,8 +34,12 @@ public class LiDarWorkerTracker {
 
         this.currentTick = 0;
         this.stampedPointsUntilFinish = LiDarDataBase.getInstance().getCloudPoints().size();
+        this.lastTrackedObject = null;
 
+        StatisticalFolder.getInstance().addLiDar(this); //Update statistic folder about new camera
     }
+
+    //Getters
 
     public int getId() {
         return id;
@@ -51,6 +56,12 @@ public class LiDarWorkerTracker {
     public int getFrequency() {
         return frequency;
     }
+
+    public TrackedObject getLastTrackedObject() {
+        return lastTrackedObject;
+    }
+
+    //Methods
 
     public void addTrackedObject(TrackedObject obj){
         lastTrackedObjects.add(obj);
@@ -79,6 +90,9 @@ public class LiDarWorkerTracker {
 
             //Update the number of Tracked Objects in the Statistical Folder
             StatisticalFolder.getInstance().addTrackedObjects(trackedObjectsToSlam.size());
+
+            //Update lastTrackedObject for a case of error in the future
+            lastTrackedObject = trackedObjectsToSlam.get(trackedObjectsToSlam.size()-1);
         }
 
         //In case that the LiDar finish
@@ -125,6 +139,8 @@ public class LiDarWorkerTracker {
             //Update the number of Tracked Objects in the Statistical Folder
             StatisticalFolder.getInstance().addTrackedObjects(trackedObjectsToSlam.size());
 
+            //Update lastTrackedObject for a case of error in the future
+            lastTrackedObject = trackedObjectsToSlam.get(trackedObjectsToSlam.size()-1);
         }
 
         //In case that the LiDar finish
@@ -160,4 +176,5 @@ public class LiDarWorkerTracker {
         }
         return output;
     }
+
 }

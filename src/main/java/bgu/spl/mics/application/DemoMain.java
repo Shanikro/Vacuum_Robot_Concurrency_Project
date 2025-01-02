@@ -1,9 +1,9 @@
 package bgu.spl.mics.application;
 
-import bgu.spl.mics.application.objects.CloudPoint;
-import bgu.spl.mics.application.objects.LandMark;
+import bgu.spl.mics.application.objects.*;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class DemoMain {
@@ -26,9 +26,30 @@ public class DemoMain {
         landMarks.add(wall1);
         landMarks.add(door);
 
-        JsonOutputGenerator jsonOutputGenerator = new JsonOutputGenerator(landMarks);
-        jsonOutputGenerator.set(22,13,13,7);
-        jsonOutputGenerator.create();
+        List<Pose> poses = new ArrayList<>();
+        poses.add(new Pose(1, 1,3,1));
+        poses.add(new Pose(2, 3,3,4));
+
+        List<DetectedObject> dlist = new LinkedList<>();
+        DetectedObject o = new DetectedObject("Error", "Camera disconnected");
+        DetectedObject o1 = new DetectedObject("wall2", "wall");
+        dlist.add(o1);
+        List<StampedDetectedObjects> list = new LinkedList<>();
+        StampedDetectedObjects sd = new StampedDetectedObjects(1,dlist);
+        list.add(sd);
+        Camera c = new Camera(1,2,list);
+
+        //c.error = o.getDescription();
+        //c.lastStampedDetectedObject = sd;
+
+        LiDarWorkerTracker l = new LiDarWorkerTracker(1,2);
+        List<CloudPoint> ll = new LinkedList<>();
+        ll.add(new CloudPoint(3.1,4.2));
+        ll.add(new CloudPoint(8,92));
+        //l.setLastTrackedObject() = new TrackedObject("wall1",2,"wall",ll);
+
+        JsonOutputErrorGenerator outputData = new JsonOutputErrorGenerator(l,poses,new StatisticalFolderAndLandmarks(StatisticalFolder.getInstance(),landMarks));
+        outputData.create();
 
     }
 }
