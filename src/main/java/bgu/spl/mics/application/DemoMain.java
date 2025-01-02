@@ -1,5 +1,6 @@
 package bgu.spl.mics.application;
 
+import bgu.spl.mics.application.Simulation.JsonOutputErrorGenerator;
 import bgu.spl.mics.application.objects.*;
 
 import java.util.ArrayList;

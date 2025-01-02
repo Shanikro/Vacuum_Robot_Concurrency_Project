@@ -1,14 +1,10 @@
 package bgu.spl.mics.application.objects;
 
-import bgu.spl.mics.application.JsonOutputErrorGenerator;
-import bgu.spl.mics.application.JsonOutputGenerator;
+import bgu.spl.mics.application.Simulation.JsonOutputErrorGenerator;
+import bgu.spl.mics.application.Simulation.JsonOutputGenerator;
 import bgu.spl.mics.application.messages.PoseEvent;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;

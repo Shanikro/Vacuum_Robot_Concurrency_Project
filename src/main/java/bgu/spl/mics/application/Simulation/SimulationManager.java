@@ -1,4 +1,4 @@
-package bgu.spl.mics.application;
+package bgu.spl.mics.application.Simulation;
 
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.objects.FusionSlam;

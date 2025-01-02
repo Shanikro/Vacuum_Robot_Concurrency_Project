@@ -1,4 +1,4 @@
-package bgu.spl.mics.application;
+package bgu.spl.mics.application.Simulation;
 
 import bgu.spl.mics.application.objects.Pose;
 import com.google.gson.Gson;
