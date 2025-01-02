@@ -50,7 +50,7 @@ public class LiDarService extends MicroService {
 
         // Handle Detect Objects Event
         subscribeEvent(DetectObjectsEvent.class, detectObjectsevent ->{
-
+            System.out.println("LiDAR got Detect Objects Event");
             List<TrackedObject> trackedObjectsToSlam = LiDar.handleDetectObjects(detectObjectsevent);
 
             //In case of LiDar error
