@@ -16,7 +16,7 @@ public class TrackedObject {
     private String description;
     private List<CloudPoint> coordinates;
 
-    //TODO: change the constructor that will get coordinates
+
     public TrackedObject(String id, int time, String description, List<CloudPoint> coordinates){
 
         this.id = id;

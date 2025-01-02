@@ -1,0 +1,82 @@
+{
+  "error": "Sensor LiDarWorker1 disconnected",
+  "faultySensor": "LiDarWorker1",
+  "lastCamerasFrame": {
+    "Camera1": {
+      "time": 1,
+      "detectedObjects": [
+        {
+          "id": "wall2",
+          "description": "wall"
+        }
+      ]
+    }
+  },
+  "lastLiDarWorkerTrackersFrame": {
+    "LiDarWorkerTracker1": {
+      "id": "wall1",
+      "time": 2,
+      "description": "wall",
+      "coordinates": [
+        {
+          "x": 3.1,
+          "y": 4.2
+        },
+        {
+          "x": 8.0,
+          "y": 92.0
+        }
+      ]
+    }
+  },
+  "poses": [
+    {
+      "x": 1.0,
+      "y": 1.0,
+      "yaw": 3.0,
+      "time": 1
+    },
+    {
+      "x": 2.0,
+      "y": 3.0,
+      "yaw": 3.0,
+      "time": 4
+    }
+  ],
+  "statistics": {
+    "systemRuntime": 0,
+    "numDetectedObjects": 0,
+    "numTrackedObjects": 0,
+    "numLandmarks": 0,
+    "landMarks": [
+      {
+        "id": "Wall_1",
+        "description": "Wall",
+        "coordinates": [
+          {
+            "x": 1.1887387639977982,
+            "y": 5.046603301251042
+          },
+          {
+            "x": 1.2533775541582042,
+            "y": 5.113604111414717
+          }
+        ]
+      },
+      {
+        "id": "Door",
+        "description": "Door",
+        "coordinates": [
+          {
+            "x": -2.913332578606659,
+            "y": -1.1554635639732926
+          },
+          {
+            "x": -2.7427859966862367,
+            "y": -1.4731329886827864
+          }
+        ]
+      }
+    ]
+  }
+}

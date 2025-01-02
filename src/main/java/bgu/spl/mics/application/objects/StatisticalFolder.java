@@ -1,5 +1,7 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -16,12 +18,20 @@ public class StatisticalFolder {
     private AtomicInteger numTrackedObjects;
     private AtomicInteger numLandmarks;
 
+    private List<Camera> cameraList;
+    private List<LiDarWorkerTracker> lidarList;
+    private AtomicInteger sensorsInAction; //When equals 0, the FusionSlam should terminate
+
     public StatisticalFolder(){
 
         this.systemRuntime = new AtomicInteger(0);
         this.numDetectedObjects = new AtomicInteger(0);
         this.numTrackedObjects = new AtomicInteger(0);
         this.numLandmarks = new AtomicInteger(0);
+
+        this.sensorsInAction = new AtomicInteger(0);
+        this.cameraList = new LinkedList<>();
+        this.lidarList = new LinkedList<>();
 
     }
 
@@ -46,6 +56,15 @@ public class StatisticalFolder {
     public int getSystemRuntime() {
         return systemRuntime.get();
     }
+    public int getSensorsInAction() {
+        return sensorsInAction.get();
+    }
+    public List<Camera> getCameraList() {
+        return cameraList;
+    }
+    public List<LiDarWorkerTracker> getLiDarList() {
+        return lidarList;
+    }
 
     //Setters
     public void incrementSystemRuntime(){
@@ -59,5 +78,19 @@ public class StatisticalFolder {
     }
     public void incrementLandMarks(){
         numLandmarks.incrementAndGet();
+    }
+    public void incrementSensorsInAction(){
+        sensorsInAction.incrementAndGet();
+    }
+    public void decrementSensorsInAction(){
+        sensorsInAction.decrementAndGet();
+    }
+
+    public void addCamera(Camera camera) {
+        cameraList.add(camera);
+    }
+
+    public void addLiDar(LiDarWorkerTracker liDarWorkerTracker) {
+        lidarList.add(liDarWorkerTracker);
     }
 }

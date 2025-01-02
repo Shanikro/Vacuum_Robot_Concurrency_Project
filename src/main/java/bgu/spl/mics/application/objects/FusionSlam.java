@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import bgu.spl.mics.application.JsonOutputErrorGenerator;
 import bgu.spl.mics.application.JsonOutputGenerator;
 import bgu.spl.mics.application.messages.PoseEvent;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
@@ -24,9 +25,8 @@ public class FusionSlam {
     private List<LandMark> landMarks;
     private List<Pose> poses;
 
-    private int currentTick;
     private final Map<Integer, List<TrackedObject>> pendingTrackedObjects; //A data structure that temporarily stores objects whose corresponding Pose not arrived yet.
-    private int sensorsInAction; //When equals 0, the FusionSlam should terminate
+
 
     //Private constructor
     private FusionSlam() {
@@ -34,8 +34,6 @@ public class FusionSlam {
         poses = new ArrayList<>();
 
         this.pendingTrackedObjects = new ConcurrentHashMap<>();
-        this.sensorsInAction = 0;
-        this.currentTick = 0;
     }
 
     //Internal static class that holds the Singleton
@@ -54,10 +52,6 @@ public class FusionSlam {
     //Getters
     public List<LandMark> getLandMarks(){
         return landMarks;
-    }
-
-    public int getSensorsInAction(){
-        return sensorsInAction;
     }
 
     public Pose getPoseByTime(int time) {
@@ -81,13 +75,8 @@ public class FusionSlam {
     }
 
     public void handleRegister() {
-        sensorsInAction++;
+        StatisticalFolder.getInstance().incrementSensorsInAction();
     }
-
-    public void handleTick(int time) {
-        currentTick = time;
-    }
-
 
     public void handleTrackedObjects(TrackedObjectsEvent trackedObjectsEvent) {
 
@@ -122,15 +111,13 @@ public class FusionSlam {
     }
 
     public void handleTerminate() {
-        sensorsInAction--;
+        StatisticalFolder.getInstance().decrementSensorsInAction();
     }
 
 
-    public void makeOutputErrorJson() {
-
-
-
-
+    public void makeOutputErrorJson(Object object) {
+        JsonOutputErrorGenerator outputData = new JsonOutputErrorGenerator(object,poses,new StatisticalFolderAndLandmarks(StatisticalFolder.getInstance(),landMarks));
+        outputData.create();
     }
 
     public void makeOutputJson() {

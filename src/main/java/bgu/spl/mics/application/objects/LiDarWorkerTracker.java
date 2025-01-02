@@ -7,6 +7,7 @@ import bgu.spl.mics.application.messages.TrackedObjectsEvent;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * LiDarWorkerTracker is responsible for managing a LiDAR worker.
@@ -22,6 +23,7 @@ public class LiDarWorkerTracker {
 
     private int currentTick;
     private int stampedPointsUntilFinish;
+    private TrackedObject lastTrackedObject;
 
     public LiDarWorkerTracker(int id, int frequency){
 
@@ -32,8 +34,12 @@ public class LiDarWorkerTracker {
 
         this.currentTick = 0;
         this.stampedPointsUntilFinish = LiDarDataBase.getInstance().getCloudPoints().size();
+        this.lastTrackedObject = null;
 
+        StatisticalFolder.getInstance().addLiDar(this); //Update statistic folder about new camera
     }
+
+    //Getters
 
     public int getId() {
         return id;
@@ -50,6 +56,12 @@ public class LiDarWorkerTracker {
     public int getFrequency() {
         return frequency;
     }
+
+    public TrackedObject getLastTrackedObject() {
+        return lastTrackedObject;
+    }
+
+    //Methods
 
     public void addTrackedObject(TrackedObject obj){
         lastTrackedObjects.add(obj);
@@ -78,6 +90,9 @@ public class LiDarWorkerTracker {
 
             //Update the number of Tracked Objects in the Statistical Folder
             StatisticalFolder.getInstance().addTrackedObjects(trackedObjectsToSlam.size());
+
+            //Update lastTrackedObject for a case of error in the future
+            lastTrackedObject = trackedObjectsToSlam.get(trackedObjectsToSlam.size()-1);
         }
 
         //In case that the LiDar finish
@@ -124,6 +139,8 @@ public class LiDarWorkerTracker {
             //Update the number of Tracked Objects in the Statistical Folder
             StatisticalFolder.getInstance().addTrackedObjects(trackedObjectsToSlam.size());
 
+            //Update lastTrackedObject for a case of error in the future
+            lastTrackedObject = trackedObjectsToSlam.get(trackedObjectsToSlam.size()-1);
         }
 
         //In case that the LiDar finish
@@ -136,7 +153,7 @@ public class LiDarWorkerTracker {
 
     private List<CloudPoint> getCloudPointList(DetectedObject detectedObject, int detectedTime) {
 
-        LinkedList<CloudPoint> output = new LinkedList<>();
+        List<CloudPoint> output = new LinkedList<>();
 
         List<StampedCloudPoints> dataBase = LiDarDataBase.getInstance().getCloudPoints();
 
@@ -146,7 +163,6 @@ public class LiDarWorkerTracker {
             if (s.getId().equals("ERROR")) {
                 setStatus(STATUS.ERROR);
                 break;
-                //TODO: להוסיף לג'ייסון כוול התיאור
             }
 
             //If everything OK
@@ -160,4 +176,5 @@ public class LiDarWorkerTracker {
         }
         return output;
     }
+
 }

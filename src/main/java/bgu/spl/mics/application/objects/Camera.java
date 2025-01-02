@@ -21,6 +21,8 @@ public class Camera {
 
     private int currentTick;
     private int stampedObjectUntilFinish;
+    private String error;
+    private StampedDetectedObjects lastStampedDetectedObject;
 
     public Camera(int id, int frequency, List<StampedDetectedObjects> detectedObjectsList) {
         this.id = id;
@@ -30,8 +32,12 @@ public class Camera {
 
         this.currentTick = 0;
         this.stampedObjectUntilFinish = detectedObjectsList.size();
+        lastStampedDetectedObject = null;
 
+        StatisticalFolder.getInstance().addCamera(this); //Update statistic folder about new camera
     }
+
+    //Getters
 
     public int getId() {
         return id;
@@ -48,6 +54,12 @@ public class Camera {
     public STATUS getStatus() {
         return status;
     }
+
+    public String getError() { return error; }
+
+    public StampedDetectedObjects getLastStampedDetectedObject() { return lastStampedDetectedObject; }
+
+    //Method
 
     public void setStatus(STATUS status) {
         this.status = status;
@@ -71,9 +83,9 @@ public class Camera {
             for (DetectedObject o : detectedObjectsAtTime.getDetectedObjects()) {
                 if (o.getId().equals("ERROR")) {
                     setStatus(STATUS.ERROR);
-                    //TODO: להוסיף לג'ייסון כוול התיאור
+                    error = o.getDescription();
+                    break;
                 }
-                break;
             }
 
             //If everything OK
@@ -82,6 +94,9 @@ public class Camera {
 
                 //Update the number of Detected Objects in the Statistical Folder
                 StatisticalFolder.getInstance().addDetectedObjects(detectedObjectsAtTime.getDetectedObjects().size());
+
+                //Update lastStampedDetectedObject for a case of error in the future
+                lastStampedDetectedObject = detectedObjectsAtTime;
             }
         }
 
@@ -92,6 +107,7 @@ public class Camera {
 
         return detectedObjectsAtTime;
     }
+
 }
 
 

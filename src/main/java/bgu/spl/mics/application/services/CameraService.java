@@ -54,7 +54,7 @@ public class CameraService extends MicroService {
             //In case of a camera error
             else if (camera.getStatus()== STATUS.ERROR) {
                 System.out.println("Sender " + getName() + " crashed!");
-                sendBroadcast(new CrashedBroadcast(getName()));
+                sendBroadcast(new CrashedBroadcast(getName(),camera));
                 terminate();
             }
 

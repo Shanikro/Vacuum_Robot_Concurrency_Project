@@ -56,7 +56,7 @@ public class LiDarService extends MicroService {
             //In case of LiDar error
             if (LiDar.getStatus() == STATUS.ERROR) {
                 System.out.println("Sender " + getName() + " crashed!");
-                sendBroadcast(new CrashedBroadcast(getName()));
+                sendBroadcast(new CrashedBroadcast(getName(),LiDar));
                 terminate();
             }
 

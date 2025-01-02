@@ -4,6 +4,7 @@ import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.Pose;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.application.objects.TrackedObject;
 
 import java.util.List;
@@ -43,11 +44,6 @@ public class FusionSlamService extends MicroService {
             fusionSlam.handleRegister();
         });
 
-        //Handle TickBroadcast
-        subscribeBroadcast(TickBroadcast.class, tick -> {
-            fusionSlam.handleTick(tick.getTime());
-        });
-
         //Handle TrackedObjectsEvent
         subscribeEvent(TrackedObjectsEvent.class, trackedObjectsEvent ->{
             fusionSlam.handleTrackedObjects(trackedObjectsEvent);
@@ -70,7 +66,7 @@ public class FusionSlamService extends MicroService {
 
             else {
                 fusionSlam.handleTerminate();
-                if(fusionSlam.getSensorsInAction() == 0){ //If all the objects have no more data , finish
+                if(StatisticalFolder.getInstance().getSensorsInAction() == 0){ //If all the objects have no more data , finish
                     System.out.println(getName() + " terminated!");
                     fusionSlam.makeOutputJson();
                     terminate();
@@ -81,7 +77,7 @@ public class FusionSlamService extends MicroService {
         //Handle CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
             System.out.println(getName() + " crashed by " + crashedBroadcast.getSenderId());
-            fusionSlam.makeOutputErrorJson();
+            fusionSlam.makeOutputErrorJson(crashedBroadcast.getObject());
             terminate();
         });
     }
