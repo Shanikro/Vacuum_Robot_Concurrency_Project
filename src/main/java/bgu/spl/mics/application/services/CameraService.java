@@ -38,7 +38,7 @@ public class CameraService extends MicroService {
 
         //Notify FusionSlam that new object registered
         sendEvent(new RegisterEvent(getName()));
-        System.out.println(getName() + "sent Register event");
+        System.out.println(getName() + " sent Register event");
 
         //Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
