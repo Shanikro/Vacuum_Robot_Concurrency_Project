@@ -13,7 +13,7 @@ import java.util.List;
 public class PoseParser {
     public static List<Pose> loadPoseData(JsonObject config, String basePath) throws IOException {
         Gson gson = new Gson();
-        String posePath = basePath + "\\" + config.get("poseJsonFile").getAsString();
+        String posePath = basePath + config.get("poseJsonFile").getAsString().substring(1);
         Type poseType = new TypeToken<List<Pose>>() {}.getType();
         List<Pose> poses = gson.fromJson(new FileReader(posePath), poseType);
         System.out.println("Poses loaded: " + poses.size());

@@ -41,7 +41,7 @@ public class LiDarParser {
 
     public static void loadLiDarDatabase(JsonObject config, String basePath) throws IOException {
         Gson gson = new Gson();
-        String lidarDataPath = basePath + "\\" + config.getAsJsonObject("LiDarWorkers").get("lidars_data_path").getAsString();
+        String lidarDataPath = basePath + config.getAsJsonObject("LiDarWorkers").get("lidars_data_path").getAsString().substring(1);
         Type lidarDataType = new TypeToken<List<StampedCloudPoints>>() {}.getType();
         List<StampedCloudPoints> lidarData = gson.fromJson(new FileReader(lidarDataPath), lidarDataType);
 
