@@ -14,11 +14,11 @@ public class SimulationManager {
         MicroService fusionSlamService = new FusionSlamService(FusionSlam.getInstance());
         new Thread(fusionSlamService).start();
 
-        for (MicroService service : cameraServices) {
+        for (MicroService service : lidarServices) {
             new Thread(service).start();
         }
 
-        for (MicroService service : lidarServices) {
+        for (MicroService service : cameraServices) {
             new Thread(service).start();
         }
 

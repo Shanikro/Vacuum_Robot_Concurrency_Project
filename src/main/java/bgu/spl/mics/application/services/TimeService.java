@@ -40,6 +40,14 @@ public class TimeService extends MicroService {
     protected void initialize() {
         System.out.println("Sender " + getName() + " started");
 
+        // Handle Terminated Broadcast from Slam
+        subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
+            if(terminatedBroadcast.getSenderId().equals("Fusion Slam Service")) {
+                System.out.println(getName() + " terminated by " + terminatedBroadcast.getSenderId());
+                terminate();
+            }
+        });
+
         while(currentTick<=duration) { //While we haven't reached duration time, we will send TickBroadcast to all listeners.
             try {
                 // Wait for TickTime between two Tick Broadcast

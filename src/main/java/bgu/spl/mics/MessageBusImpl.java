@@ -167,6 +167,7 @@ public class MessageBusImpl implements MessageBus {
 	public synchronized void register(MicroService m) {
 		if(!microServices.containsKey(m)){
 			microServices.put(m, new LinkedList<Message>());
+			System.out.println(m.getName() + " register microServices");
 		}
 	}
 
