@@ -24,7 +24,7 @@ public class CameraParser {
         Gson gson = new Gson();
         JsonObject camerasConfig = config.getAsJsonObject("Cameras");
         JsonArray cameraConfigs = camerasConfig.getAsJsonArray("CamerasConfigurations");
-        String cameraDataPath = basePath + "\\" + camerasConfig.get("camera_datas_path").getAsString();
+        String cameraDataPath = basePath + "\\" + camerasConfig.get("camera_datas_path").getAsString().substring(1);
 
         Type cameraDataType = new TypeToken<Map<String, List<StampedDetectedObjects>>>() {}.getType();
         Map<String, List<StampedDetectedObjects>> cameraData = gson.fromJson(new FileReader(cameraDataPath), cameraDataType);
