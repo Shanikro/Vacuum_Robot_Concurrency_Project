@@ -72,11 +72,20 @@ public class FusionSlam {
 
     public void handleRegister() {
         StatisticalFolder.getInstance().incrementSensorsInAction();
+        System.out.println("FusionSlam handled register event");
     }
 
     public void handleTrackedObjects(TrackedObjectsEvent trackedObjectsEvent) {
+        System.out.println("FusionSlam got tracked object event");
 
-        int time = trackedObjectsEvent.getTrackedObjects().get(0).getTime(); //Check the time that tracked
+        List<TrackedObject> trackedObjects = trackedObjectsEvent.getTrackedObjects();
+
+        // Check if the list of tracked objects is empty
+        if (trackedObjects == null || trackedObjects.isEmpty()) {
+            return;
+        }
+
+        int time = trackedObjects.get(0).getTime(); //Check the time that tracked
         Pose matchedPose = getPoseByTime(time);
 
         //In case the corresponding Pose has not appeared yet.
@@ -88,12 +97,15 @@ public class FusionSlam {
         else{
             for (TrackedObject object : trackedObjectsEvent.getTrackedObjects()) {
                 updateMap(object, matchedPose);
+                System.out.println("FusionSlam updated map");
             }
         }
 
     }
 
     public void handlePose(PoseEvent poseEvent) {
+        System.out.println("FusionSlam got pose event");
+
         int time = poseEvent.getPose().getTime(); //Pose time
         addPose(poseEvent.getPose()); //Add Pose to the pose list of FusionSlam
 
@@ -102,6 +114,7 @@ public class FusionSlam {
             List<TrackedObject> matchedTrackedObjects = pendingTrackedObjects.remove(time); //Remove them
             for (TrackedObject object : matchedTrackedObjects) {
                 updateMap(object, poseEvent.getPose());
+                System.out.println("FusionSlam updated map");
             }
         }
     }

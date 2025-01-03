@@ -106,6 +106,11 @@ public class LiDarWorkerTracker {
     public List<TrackedObject> handleDetectObjects(DetectObjectsEvent detectObjectsevent) {
 
         StampedDetectedObjects stampedDetectedObjects = detectObjectsevent.getDetectedObjects(); //Include list of detected objects
+
+        if (stampedDetectedObjects == null) {
+            return new LinkedList<>(); // Return an empty list
+        }
+
         int trackedTime = stampedDetectedObjects.getTime() + frequency; //Time to send as event
 
         List<TrackedObject> trackedObjectsToSlam = new LinkedList<>();

@@ -48,11 +48,12 @@ public class GurionRockRunner {
             // Initialize Cameras
             List<MicroService> cameraServices = CameraParser.initCameras(config,basePath);
 
+            // Load LiDar DataBase
+            LiDarParser.loadLiDarDatabase(config, basePath);
+
             // Initialize LiDar Workers
             List<MicroService> LiDarServices = LiDarParser.initLiDarWorkers(config);
 
-            // Load LiDar DataBase
-            LiDarParser.loadLiDarDatabase(config, basePath);
 
             // Load Pose Data
             List<Pose> poses = PoseParser.loadPoseData(config, basePath);

@@ -39,7 +39,7 @@ public class LiDarService extends MicroService {
 
         //Notify FusionSlam that new object registered
         sendEvent(new RegisterEvent(getName()));
-        System.out.println(getName() + "sent Register event");
+        System.out.println(getName() + " sent Register event");
 
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
@@ -86,7 +86,7 @@ public class LiDarService extends MicroService {
         if(LiDar.getStatus() == STATUS.UP) {
             // Send event with detected objects
             sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
-            System.out.println(getName() + "sent Tracked Objects event");
+            System.out.println(getName() + " sent Tracked Objects event");
         }
 
         //In case the camera shuts down
