@@ -26,7 +26,4 @@ public class StampedDetectedObjects {
         return detectedObjects;
     }
 
-    public void addDetectedObject(DetectedObject obj){
-        detectedObjects.add(obj);
-    }
 }
