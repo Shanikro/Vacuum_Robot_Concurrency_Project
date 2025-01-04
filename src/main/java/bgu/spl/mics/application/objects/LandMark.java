@@ -29,10 +29,6 @@ public class LandMark {
         return coordinates;
     }
 
-    public void addCoordinate(CloudPoint cloudPoint){
-        coordinates.add(cloudPoint);
-    }
-
     public void setCoordinates(List<CloudPoint> list) {
         coordinates = list;
     }
