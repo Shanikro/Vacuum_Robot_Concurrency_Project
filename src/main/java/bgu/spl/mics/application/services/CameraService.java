@@ -44,7 +44,7 @@ public class CameraService extends MicroService {
             if(camera.getStatus() == STATUS.UP && detectedObjectsAtTime != null && !detectedObjectsAtTime.getDetectedObjects().isEmpty()) {
                 // Send event with detected objects
                 sendEvent(new DetectObjectsEvent(getName(), detectedObjectsAtTime));
-                System.out.println(getName() + " send detected objects event");
+                System.out.println(getName() + " sent detected objects event");
             }
 
             //In case of a camera error

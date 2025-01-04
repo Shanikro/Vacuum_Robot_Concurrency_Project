@@ -49,7 +49,7 @@ public class FusionSlamService extends MicroService {
         //Handle PoseEvent
         subscribeEvent(PoseEvent.class, poseEvent -> {
             fusionSlam.handlePose(poseEvent);
-            System.out.println(getName() + " get Pose Event.");
+            System.out.println(getName() + " got Pose Event");
         });
 
         //Handle TerminatedBroadcast
