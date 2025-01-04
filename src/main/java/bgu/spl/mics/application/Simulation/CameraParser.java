@@ -41,10 +41,6 @@ public class CameraParser {
             cameras.add(newCamera);
             cameraServices.add(new CameraService(newCamera));
         }
-
-
-        System.out.println("Cameras initialized: " + cameras.size());
-
         return cameraServices;
     }
 }

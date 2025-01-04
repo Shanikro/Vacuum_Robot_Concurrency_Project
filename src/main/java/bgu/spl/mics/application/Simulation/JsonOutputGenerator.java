@@ -34,7 +34,6 @@ public class JsonOutputGenerator {
         try (FileWriter writer = new FileWriter("output_file.json")) {
             // Serialize Java objects to JSON file
             gson.toJson(this, writer);
-            System.out.println("FusionSlam data has been written to output_file.json");
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -16,7 +16,6 @@ public class PoseParser {
         String posePath = basePath + config.get("poseJsonFile").getAsString().substring(1);
         Type poseType = new TypeToken<List<Pose>>() {}.getType();
         List<Pose> poses = gson.fromJson(new FileReader(posePath), poseType);
-        System.out.println("Poses loaded: " + poses.size());
 
         return poses;
     }
