@@ -117,7 +117,6 @@ public class FusionSlam {
 
     public void handleTerminate() {
         StatisticalFolder.getInstance().decrementSensorsInAction();
-        System.out.println(StatisticalFolder.getInstance().getSensorsInAction());
     }
 
 
