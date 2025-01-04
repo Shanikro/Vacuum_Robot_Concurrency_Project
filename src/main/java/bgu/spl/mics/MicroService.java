@@ -180,4 +180,8 @@ public abstract class MicroService implements Runnable {
 
         System.out.println("MicroService " + getName() + " terminated!");
     }
+
+    public boolean isTerminated(){
+        return terminated;
+    }
 }
