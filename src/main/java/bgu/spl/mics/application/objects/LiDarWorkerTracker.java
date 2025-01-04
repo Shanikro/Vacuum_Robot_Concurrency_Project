@@ -74,8 +74,14 @@ public class LiDarWorkerTracker {
     public List<TrackedObject> handleTick(int time) {
 
         currentTick = time;
-
         List<TrackedObject> trackedObjectsToSlam = new LinkedList<>();
+
+        //In case that the LiDar finish
+        if(stampedPointsUntilFinish == 0 && lastTrackedObjects.isEmpty()){
+            setStatus(STATUS.DOWN);
+            return trackedObjectsToSlam;
+        }
+
         for(TrackedObject o : lastTrackedObjects){
             if(o.getTime() == currentTick - frequency) {
                 trackedObjectsToSlam.add(o); //Add this object to the list used by Fusion Slam
@@ -93,11 +99,6 @@ public class LiDarWorkerTracker {
 
             //Update lastTrackedObject for a case of error in the future
             lastTrackedObject = trackedObjectsToSlam.get(trackedObjectsToSlam.size()-1);
-        }
-
-        //In case that the LiDar finish
-        if(stampedPointsUntilFinish == 0 && lastTrackedObjects.isEmpty()){
-            setStatus(STATUS.DOWN);
         }
 
         return trackedObjectsToSlam;

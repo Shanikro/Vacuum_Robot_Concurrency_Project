@@ -115,10 +115,16 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public void sendBroadcast(Broadcast b) {
-		Queue<MicroService> microServiceList = broadcasts.get(b.getClass());
-		if(microServiceList != null) {
+//		Queue<MicroService> microServiceList = broadcasts.get(b.getClass());
+//		if(microServiceList != null) {
+//			for (MicroService m : microServiceList) {
+//				addMsg(m, b);
+//			}
+//		}
+		BlockingQueue<MicroService> microServiceList = broadcasts.get(b.getClass());
+		if (microServiceList != null) {
 			for (MicroService m : microServiceList) {
-				addMsg(m, b);
+				addMsg(m, b); // מוסיף את ההודעה לכל מיקרו-שירות
 			}
 		}
 	}
@@ -144,13 +150,27 @@ public class MessageBusImpl implements MessageBus {
 		if (microServiceQueue == null || microServiceQueue.isEmpty()) { //TODO להוריד אם צריך
 			return null;
 		}
+//		synchronized (microServiceQueue) {
+//			MicroService MS = microServiceQueue.remove(); //Take the next Micro-service according to round-robin fashion.
+//			addMsg(MS,e);
+//			microServiceQueue.add(MS); //Returns the Micro-service according to round-robin fashion.
+//
+//			Future<T> future = new Future<>(); //Create future for the event
+//			eventFuture.put(e, future);
+//
+//			return future;
+//		}
 		synchronized (microServiceQueue) {
-			MicroService MS = microServiceQueue.remove(); //Take the next Micro-service according to round-robin fashion.
-			addMsg(MS,e);
-			microServiceQueue.add(MS); //Returns the Micro-service according to round-robin fashion.
+			MicroService ms = microServiceQueue.poll(); // לוקח את המיקרו-שירות הבא
+			if (ms == null) {
+				return null; // תור ריק
+			}
 
-			Future<T> future = new Future<>(); //Create future for the event
-			eventFuture.put(e, future);
+			Future<T> future = new Future<>(); // יוצר Future חדש
+			eventFuture.put(e, future); // מוסיף ל-eventFuture (שימו לב שזו ConcurrentHashMap)
+
+			addMsg(ms, e); // שולח את ההודעה למיקרו-שירות
+			microServiceQueue.add(ms); // מחזיר את המיקרו-שירות לסוף התור
 
 			return future;
 		}
@@ -185,18 +205,32 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public void unregister(MicroService m) {
+//		microServices.remove(m); //Remove from MicroServices Map
+//
+//		for(Queue<MicroService> msList : broadcasts.values()){ //Remove from Broadcasts Map, if in
+//			synchronized (msList){
+//				msList.remove(m);
+//			}
+//		}
+//
+//		for(Queue<MicroService> msQueue : events.values()){ //Remove from Events Map, if in
+//			synchronized (msQueue){
+//				msQueue.remove(m);
+//			}
+//		}
+		synchronized (microServices) {
+			microServices.remove(m); // הסרה ממפת המיקרו-שירותים
+		}
 
-		microServices.remove(m); //Remove from MicroServices Map
-
-		for(Queue<MicroService> msList : broadcasts.values()){ //Remove from Broadcasts Map, if in
-			synchronized (msList){
-				msList.remove(m);
+		synchronized (broadcasts) {
+			for (BlockingQueue<MicroService> msList : broadcasts.values()) {
+				msList.remove(m); // הסרה מה-broadcasts
 			}
 		}
 
-		for(Queue<MicroService> msQueue : events.values()){ //Remove from Events Map, if in
-			synchronized (msQueue){
-				msQueue.remove(m);
+		synchronized (events) {
+			for (BlockingQueue<MicroService> msQueue : events.values()) {
+				msQueue.remove(m); // הסרה מה-events
 			}
 		}
 	}
@@ -213,16 +247,21 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		synchronized (microServices) {
-			while (microServices.get(m).isEmpty()) {
-				try {
-					microServices.wait();
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-			}
-			return microServices.get(m).remove();
+//		synchronized (microServices) {
+//			while (microServices.get(m).isEmpty()) {
+//				try {
+//					microServices.wait();
+//				} catch (InterruptedException e) {
+//					Thread.currentThread().interrupt();
+//				}
+//			}
+//			return microServices.get(m).remove();
+//		}
+		BlockingQueue<Message> queue = microServices.get(m);
+		if (queue == null) {
+			throw new IllegalStateException("MicroService is not registered");
 		}
+		return queue.take();
 	}
 
 	private void addMsg(MicroService m, Message msg) {
