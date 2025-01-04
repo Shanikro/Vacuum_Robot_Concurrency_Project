@@ -46,9 +46,9 @@ public class LiDarService extends MicroService {
             List<TrackedObject> trackedObjectsToSlam = LiDar.handleTick(tick.getTime());
 
             //In case the LiDAR is UP or DOWN and there is objects
-            //if(!trackedObjectsToSlam.isEmpty()) { //TODO הוספתי
+            if(!trackedObjectsToSlam.isEmpty()) {
                 sendEventByStatus(trackedObjectsToSlam);
-            //}
+            }
         });
 
         // Handle Detect Objects Event
@@ -64,7 +64,9 @@ public class LiDarService extends MicroService {
             }
 
             //In case the LiDAR is UP or DOWN
-            sendEventByStatus(trackedObjectsToSlam);
+            if(!trackedObjectsToSlam.isEmpty()) {
+                sendEventByStatus(trackedObjectsToSlam);
+            }
 
         });
 
@@ -88,7 +90,7 @@ public class LiDarService extends MicroService {
 
         if(LiDar.getStatus() == STATUS.UP) {
             // Send event with detected objects
-            sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
+            sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam));
             System.out.println(getName() + " sent Tracked Objects event");
         }
 

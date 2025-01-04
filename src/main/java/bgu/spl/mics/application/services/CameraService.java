@@ -45,9 +45,9 @@ public class CameraService extends MicroService {
 
             StampedDetectedObjects detectedObjectsAtTime = camera.handleTick(tick.getTime());
 
-            if(camera.getStatus() == STATUS.UP) {
+            if(camera.getStatus() == STATUS.UP && detectedObjectsAtTime!=null) {
                 // Send event with detected objects
-                sendEvent(new DetectObjectsEvent(getName(), detectedObjectsAtTime)); //TODO: check what we need to do with the future
+                sendEvent(new DetectObjectsEvent(getName(), detectedObjectsAtTime));
                 System.out.println("Camera " + getName() + " send detected objects event");
             }
 

@@ -141,7 +141,7 @@ public class MessageBusImpl implements MessageBus {
 
 		BlockingQueue<MicroService> microServiceQueue = events.get(e.getClass());
 
-		if (microServiceQueue == null || microServiceQueue.isEmpty()) { //TODO להוריד אם צריך
+		if (microServiceQueue == null || microServiceQueue.isEmpty()) {
 			return null;
 		}
 		synchronized (microServiceQueue) {
