@@ -44,37 +44,35 @@ public class CameraService extends MicroService {
             if(camera.getStatus() == STATUS.UP && detectedObjectsAtTime != null && !detectedObjectsAtTime.getDetectedObjects().isEmpty()) {
                 // Send event with detected objects
                 sendEvent(new DetectObjectsEvent(getName(), detectedObjectsAtTime));
-                System.out.println("Camera " + getName() + " send detected objects event");
+                System.out.println(getName() + " send detected objects event");
             }
 
             //In case of a camera error
             else if (camera.getStatus()== STATUS.ERROR) {
-                System.out.println("Sender " + getName() + " crashed!");
+                System.out.println(getName() + " crashed!");
                 sendBroadcast(new CrashedBroadcast(getName(),camera));
                 terminate();
             }
 
             //In case the camera shuts down
             else if (camera.getStatus()== STATUS.DOWN) {
-                System.out.println("Sender " + getName() + " terminated!");
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
             }
-
         });
 
 
         // Handle TerminatedBroadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
             if(terminatedBroadcast.getSenderId().equals("Fusion Slam Service")) { //Terminate only if the fusionSlam send the broadcast
-                System.out.println("Camera " + camera.getId() + " terminated by " + terminatedBroadcast.getSenderId());
+                System.out.println(getName() + " terminated by " + terminatedBroadcast.getSenderId());
                 terminate();
             }
         });
 
         // Handle CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
-            System.out.println("Camera " + camera.getId() + " crashed by " + crashedBroadcast.getSenderId());
+            System.out.println(getName() + " crashed by " + crashedBroadcast.getSenderId());
             terminate();
         });
     }

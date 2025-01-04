@@ -72,7 +72,6 @@ public class FusionSlam {
 
 
     public void handleTrackedObjects(TrackedObjectsEvent trackedObjectsEvent) {
-        System.out.println("FusionSlam got tracked object event");
 
         List<TrackedObject> trackedObjects = trackedObjectsEvent.getTrackedObjects();
 
@@ -100,7 +99,6 @@ public class FusionSlam {
     }
 
     public void handlePose(PoseEvent poseEvent) {
-        System.out.println("FusionSlam got pose event");
 
         int time = poseEvent.getPose().getTime(); //Pose time
         addPose(poseEvent.getPose()); //Add Pose to the pose list of FusionSlam

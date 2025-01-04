@@ -38,12 +38,11 @@ public class PoseService extends MicroService {
 
             if(gpsimu.getStatus() == STATUS.UP) {
                 sendEvent(new PoseEvent(getName(), pose));
-                System.out.println("gps" + getName() + " sent pose event");
+                System.out.println(getName() + " sent pose event");
             }
 
             //In case that no more data to read, finish
             if(gpsimu.getStatus() == STATUS.DOWN){
-                System.out.println("Sender " + getName() + " terminated!");
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
             }

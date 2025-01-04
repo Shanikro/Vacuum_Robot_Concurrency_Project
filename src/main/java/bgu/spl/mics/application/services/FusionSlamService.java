@@ -65,7 +65,6 @@ public class FusionSlamService extends MicroService {
             else {
                 fusionSlam.handleTerminate();
                 if(StatisticalFolder.getInstance().getSensorsInAction() == 0){ //If all the objects have no more data , finish
-                    System.out.println(getName() + " terminated!");
                     sendBroadcast(new TerminatedBroadcast(getName()));
                     fusionSlam.makeOutputJson();
                     terminate();

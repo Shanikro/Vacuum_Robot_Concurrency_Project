@@ -47,12 +47,12 @@ public class LiDarService extends MicroService {
 
         // Handle Detect Objects Event
         subscribeEvent(DetectObjectsEvent.class, detectObjectsevent ->{
-            System.out.println("LiDAR got Detect Objects Event");
+            System.out.println(getName() + " got Detect Objects Event");
             List<TrackedObject> trackedObjectsToSlam = LiDar.handleDetectObjects(detectObjectsevent);
 
             //In case of LiDar error
             if (LiDar.getStatus() == STATUS.ERROR) {
-                System.out.println("Sender " + getName() + " crashed!");
+                System.out.println(getName() + " crashed!");
                 sendBroadcast(new CrashedBroadcast(getName(),LiDar));
                 terminate();
             }
@@ -64,14 +64,14 @@ public class LiDarService extends MicroService {
         // Handle Terminated Broadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
             if(terminatedBroadcast.getSenderId().equals("Fusion Slam Service")) {
-                System.out.println("LiDar " + LiDar.getId() + " terminated by " + terminatedBroadcast.getSenderId());
+                System.out.println(getName() + " terminated by " + terminatedBroadcast.getSenderId());
                 terminate();
             }
         });
 
         // Handle Crashed Broadcast
         subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
-            System.out.println("LiDar " + LiDar.getId() + " crashed by " + crashedBroadcast.getSenderId());
+            System.out.println(getName() + " crashed by " + crashedBroadcast.getSenderId());
             terminate();
         });
 
@@ -87,7 +87,6 @@ public class LiDarService extends MicroService {
 
         //In case the camera shuts down
         else if (LiDar.getStatus()== STATUS.DOWN) {
-            System.out.println("Sender " + getName() + " terminated!");
             sendBroadcast(new TerminatedBroadcast(getName()));
             terminate();
         }
