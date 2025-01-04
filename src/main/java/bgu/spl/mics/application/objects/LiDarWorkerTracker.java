@@ -106,6 +106,9 @@ public class LiDarWorkerTracker {
 
     public List<TrackedObject> handleDetectObjects(DetectObjectsEvent detectObjectsevent) {
 
+
+
+
         StampedDetectedObjects stampedDetectedObjects = detectObjectsevent.getDetectedObjects(); //Include list of detected objects
 
         if (stampedDetectedObjects == null) {
