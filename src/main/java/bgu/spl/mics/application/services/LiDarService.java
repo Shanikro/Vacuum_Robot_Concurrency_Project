@@ -81,7 +81,7 @@ public class LiDarService extends MicroService {
 
         if(LiDar.getStatus() == STATUS.UP && !trackedObjectsToSlam.isEmpty()) {
             // Send event with detected objects
-            sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
+            sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam));
             System.out.println(getName() + " sent Tracked Objects event");
         }
 

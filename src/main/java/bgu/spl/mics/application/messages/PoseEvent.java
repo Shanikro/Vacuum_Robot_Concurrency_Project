@@ -6,7 +6,7 @@ import bgu.spl.mics.application.objects.Pose;
 
 import java.util.List;
 
-public class PoseEvent implements Event<Boolean> { //TODO
+public class PoseEvent implements Event<Boolean> {
 
     private final String senderName;
     private final Pose pose;
