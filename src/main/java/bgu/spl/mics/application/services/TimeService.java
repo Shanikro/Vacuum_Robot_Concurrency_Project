@@ -64,7 +64,7 @@ public class TimeService extends MicroService {
                 return;
             }
 
-            while (currentTick <= duration && !isTerminated()) { //While we haven't reached duration time, we will send TickBroadcast to all listeners.
+            while (currentTick < duration && !isTerminated()) { //While we haven't reached duration time, we will send TickBroadcast to all listeners.
                 try {
                     sendBroadcast(new TickBroadcast(getName(), currentTick));
                     System.out.println(getName() + " sends tick broadcast");

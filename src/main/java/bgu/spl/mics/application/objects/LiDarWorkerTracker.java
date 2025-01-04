@@ -137,7 +137,7 @@ public class LiDarWorkerTracker {
             }
 
             //If not error, create corresponding Tracked Object
-            TrackedObject newTrackedObj = new TrackedObject(detectedObject.getId(), trackedTime, detectedObject.getDescription(), listCoordinates);
+            TrackedObject newTrackedObj = new TrackedObject(detectedObject.getId(), stampedDetectedObjects.getTime(), detectedObject.getDescription(), listCoordinates);
 
             if (trackedTime <= currentTick) {
                 trackedObjectsToSlam.add(newTrackedObj); //The time Tick already passed, we can send it
