@@ -107,7 +107,11 @@ public class LiDarWorkerTracker {
     public List<TrackedObject> handleDetectObjects(DetectObjectsEvent detectObjectsevent) {
 
 
+        //In case that the LiDar finish
+        if(stampedPointsUntilFinish == 0 && lastTrackedObjects.isEmpty()){
+            setStatus(STATUS.DOWN);
 
+        }
 
         StampedDetectedObjects stampedDetectedObjects = detectObjectsevent.getDetectedObjects(); //Include list of detected objects
 
@@ -152,10 +156,6 @@ public class LiDarWorkerTracker {
             lastTrackedObject = trackedObjectsToSlam.get(trackedObjectsToSlam.size()-1);
         }
 
-        //In case that the LiDar finish
-        if(stampedPointsUntilFinish == 0 && lastTrackedObjects.isEmpty()){
-            setStatus(STATUS.DOWN);
-        }
 
         return trackedObjectsToSlam;
     }
