@@ -57,7 +57,6 @@ public class JsonOutputErrorGenerator {
         try (FileWriter writer = new FileWriter("error_output.json")) {
             // Serialize Java objects to JSON file
             gson.toJson(this, writer);
-            System.out.println("FusionSlam data has been written to error_output.json");
         } catch (IOException e) {
             e.printStackTrace();
         }

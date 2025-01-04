@@ -1,0 +1,49 @@
+<changelist name="Uncommitted_changes_before_Update_at_04_01_2025_16_38_[Changes]" date="1736001510586" recycled="false" toDelete="true">
+  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_04_01_2025_16_38_[Changes]/shelved.patch" />
+  <option name="DESCRIPTION" value="Uncommitted changes before Update at 04/01/2025 16:38 [Changes]" />
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/CameraTest.class" />
+    <option name="AFTER_PATH" value="target/test-classes/CameraTest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_04_01_2025_16_38_[Changes]/CameraTest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/MessageBusTest$3TestBroadcast.class" />
+    <option name="AFTER_PATH" value="target/test-classes/MessageBusTest$3TestBroadcast.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_04_01_2025_16_38_[Changes]/MessageBusTest$3TestBroadcast.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/MessageBusTest$2TestBroadcast.class" />
+    <option name="AFTER_PATH" value="target/test-classes/MessageBusTest$2TestBroadcast.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_04_01_2025_16_38_[Changes]/MessageBusTest$2TestBroadcast.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/MessageBusTest.class" />
+    <option name="AFTER_PATH" value="target/test-classes/MessageBusTest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_04_01_2025_16_38_[Changes]/MessageBusTest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/MessageBusTest$1TestBroadcast.class" />
+    <option name="AFTER_PATH" value="target/test-classes/MessageBusTest$1TestBroadcast.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_04_01_2025_16_38_[Changes]/MessageBusTest$1TestBroadcast.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/LiDarTest.class" />
+    <option name="AFTER_PATH" value="target/test-classes/LiDarTest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_04_01_2025_16_38_[Changes]/LiDarTest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/MessageBusTest$2TestEvent.class" />
+    <option name="AFTER_PATH" value="target/test-classes/MessageBusTest$2TestEvent.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_04_01_2025_16_38_[Changes]/MessageBusTest$2TestEvent.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/MessageBusTest$1TestEvent.class" />
+    <option name="AFTER_PATH" value="target/test-classes/MessageBusTest$1TestEvent.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_04_01_2025_16_38_[Changes]/MessageBusTest$1TestEvent.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/MessageBusTest$3TestEvent.class" />
+    <option name="AFTER_PATH" value="target/test-classes/MessageBusTest$3TestEvent.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_04_01_2025_16_38_[Changes]/MessageBusTest$3TestEvent.class" />
+  </binary>
+</changelist>

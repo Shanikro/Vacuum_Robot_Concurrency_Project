@@ -35,7 +35,6 @@ public class LiDarParser {
             lidarWorkers.add(lidarWorker);
             LiDarServices.add(new LiDarService(lidarWorker));
         }
-        System.out.println("LiDar Workers initialized: " + lidarWorkers.size());
         return LiDarServices;
     }
 
@@ -49,6 +48,7 @@ public class LiDarParser {
         for (StampedCloudPoints point : lidarData) {
             database.addCloudPoints(point);
         }
-        System.out.println("LiDar database loaded with: " + database.getCloudPoints().size() + " entries");
+
+        database.setStampedPointsUntilLiDarsFinish(database.getCloudPoints().size());
     }
 }

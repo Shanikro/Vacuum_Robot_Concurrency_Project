@@ -5,6 +5,7 @@ import bgu.spl.mics.application.messages.DetectObjectsEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -22,7 +23,6 @@ public class LiDarWorkerTracker {
     private List<TrackedObject> lastTrackedObjects;
 
     private int currentTick;
-    private int stampedPointsUntilFinish;
     private TrackedObject lastTrackedObject;
 
     public LiDarWorkerTracker(int id, int frequency){
@@ -33,7 +33,6 @@ public class LiDarWorkerTracker {
         this.lastTrackedObjects = new LinkedList<>();
 
         this.currentTick = 0;
-        this.stampedPointsUntilFinish = LiDarDataBase.getInstance().getCloudPoints().size();
         this.lastTrackedObject = null;
 
         StatisticalFolder.getInstance().addLiDar(this); //Update statistic folder about new camera
@@ -77,22 +76,25 @@ public class LiDarWorkerTracker {
         List<TrackedObject> trackedObjectsToSlam = new LinkedList<>();
 
         //In case that the LiDar finish
-        if(stampedPointsUntilFinish == 0 && lastTrackedObjects.isEmpty()){
+        if(LiDarDataBase.getInstance().getStampedPointsUntilLiDarsFinish() == 0 && lastTrackedObjects.isEmpty()){
             setStatus(STATUS.DOWN);
             return trackedObjectsToSlam;
         }
 
-        for(TrackedObject o : lastTrackedObjects){
-            if(o.getTime() == currentTick - frequency) {
-                trackedObjectsToSlam.add(o); //Add this object to the list used by Fusion Slam
-                lastTrackedObjects.remove(o); //Remove the object from the last tracked object list of the lidar
+        Iterator<TrackedObject> iterator = lastTrackedObjects.iterator();
+        while (iterator.hasNext()) {
+            TrackedObject o = iterator.next();
+            if (o.getTime() == currentTick - frequency) {
+                trackedObjectsToSlam.add(o);
+                iterator.remove();
             }
         }
+
 
         //If we found corresponding trackedObjects
         if (!trackedObjectsToSlam.isEmpty()) {
             //Update the count until the LiDar finish
-            stampedPointsUntilFinish = stampedPointsUntilFinish - trackedObjectsToSlam.size();
+            LiDarDataBase.getInstance().setStampedPointsUntilLiDarsFinish(LiDarDataBase.getInstance().getStampedPointsUntilLiDarsFinish() - trackedObjectsToSlam.size());
 
             //Update the number of Tracked Objects in the Statistical Folder
             StatisticalFolder.getInstance().addTrackedObjects(trackedObjectsToSlam.size());
@@ -105,6 +107,13 @@ public class LiDarWorkerTracker {
     }
 
     public List<TrackedObject> handleDetectObjects(DetectObjectsEvent detectObjectsevent) {
+
+
+        //In case that the LiDar finish
+        if(LiDarDataBase.getInstance().getStampedPointsUntilLiDarsFinish() == 0 && lastTrackedObjects.isEmpty()){
+            setStatus(STATUS.DOWN);
+
+        }
 
         StampedDetectedObjects stampedDetectedObjects = detectObjectsevent.getDetectedObjects(); //Include list of detected objects
 
@@ -126,7 +135,7 @@ public class LiDarWorkerTracker {
             }
 
             //If not error, create corresponding Tracked Object
-            TrackedObject newTrackedObj = new TrackedObject(detectedObject.getId(), trackedTime, detectedObject.getDescription(), listCoordinates);
+            TrackedObject newTrackedObj = new TrackedObject(detectedObject.getId(), stampedDetectedObjects.getTime(), detectedObject.getDescription(), listCoordinates);
 
             if (trackedTime <= currentTick) {
                 trackedObjectsToSlam.add(newTrackedObj); //The time Tick already passed, we can send it
@@ -140,8 +149,7 @@ public class LiDarWorkerTracker {
         if (getStatus() == STATUS.UP && !trackedObjectsToSlam.isEmpty()) {
 
             //Update the count until the LiDar finish
-            stampedPointsUntilFinish = stampedPointsUntilFinish - trackedObjectsToSlam.size();
-
+            LiDarDataBase.getInstance().setStampedPointsUntilLiDarsFinish(LiDarDataBase.getInstance().getStampedPointsUntilLiDarsFinish() - trackedObjectsToSlam.size());
             //Update the number of Tracked Objects in the Statistical Folder
             StatisticalFolder.getInstance().addTrackedObjects(trackedObjectsToSlam.size());
 
@@ -149,10 +157,6 @@ public class LiDarWorkerTracker {
             lastTrackedObject = trackedObjectsToSlam.get(trackedObjectsToSlam.size()-1);
         }
 
-        //In case that the LiDar finish
-        if(stampedPointsUntilFinish == 0 && lastTrackedObjects.isEmpty()){
-            setStatus(STATUS.DOWN);
-        }
 
         return trackedObjectsToSlam;
     }
@@ -172,7 +176,7 @@ public class LiDarWorkerTracker {
             }
 
             //If everything OK
-            else if (s.getTime() == detectedTime + frequency && s.getId().equals(detectedObject.getId())) {
+            else if (s.getTime() == detectedTime && s.getId().equals(detectedObject.getId())) {
                 for (List<Double> l : s.getCloudPoints()) { //Copy each list with x and y to a CloudPoint object
                     CloudPoint newPoint = new CloudPoint(l.get(0), l.get(1));
                     output.add(newPoint);

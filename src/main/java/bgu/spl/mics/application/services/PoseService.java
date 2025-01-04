@@ -31,10 +31,6 @@ public class PoseService extends MicroService {
     protected void initialize() {
         System.out.println(getName() + " started");
 
-        //Notify FusionSlam that new object registered
-        sendEvent(new RegisterEvent(getName()));
-        System.out.println(getName() + " sent Register event");
-
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
 
@@ -42,12 +38,11 @@ public class PoseService extends MicroService {
 
             if(gpsimu.getStatus() == STATUS.UP) {
                 sendEvent(new PoseEvent(getName(), pose));
-                System.out.println("gps" + getName() + " sent pose event");
+                System.out.println(getName() + " sent pose event");
             }
 
             //In case that no more data to read, finish
             if(gpsimu.getStatus() == STATUS.DOWN){
-                System.out.println("Sender " + getName() + " terminated!");
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
             }
