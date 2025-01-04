@@ -48,5 +48,7 @@ public class LiDarParser {
         for (StampedCloudPoints point : lidarData) {
             database.addCloudPoints(point);
         }
+
+        database.setStampedPointsUntilLiDarsFinish(database.getCloudPoints().size());
     }
 }

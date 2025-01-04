@@ -12,9 +12,11 @@ import java.util.List;
 public class LiDarDataBase {
 
     private List<StampedCloudPoints> cloudPoints;
+    private int stampedPointsUntilLiDarsFinish;
 
     private LiDarDataBase(){
         this.cloudPoints = new LinkedList<>();
+        this.stampedPointsUntilLiDarsFinish = 0;
     }
 
     //Internal static class that holds the Singleton
@@ -37,5 +39,13 @@ public class LiDarDataBase {
 
     public void addCloudPoints(StampedCloudPoints stampedCloudPoints) {
         cloudPoints.add(stampedCloudPoints);
+    }
+
+    public void setStampedPointsUntilLiDarsFinish(int size) {
+        stampedPointsUntilLiDarsFinish = size;
+    }
+
+    public int getStampedPointsUntilLiDarsFinish() {
+        return stampedPointsUntilLiDarsFinish;
     }
 }

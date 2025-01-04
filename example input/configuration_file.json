@@ -3,7 +3,7 @@
     "CamerasConfigurations": [
       {
         "id": 1,
-        "frequency": 1,
+        "frequency": 0,
         "camera_key": "camera1"
       }
     ],
@@ -13,7 +13,7 @@
     "LidarConfigurations": [
       {
         "id": 1,
-        "frequency": 1
+        "frequency": 0
       }
     ],
     "lidars_data_path": "./lidar_data.json"
