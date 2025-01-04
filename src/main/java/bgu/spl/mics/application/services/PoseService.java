@@ -31,10 +31,6 @@ public class PoseService extends MicroService {
     protected void initialize() {
         System.out.println(getName() + " started");
 
-        //Notify FusionSlam that new object registered
-        sendEvent(new RegisterEvent(getName()));
-        System.out.println(getName() + " sent Register event");
-
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
 

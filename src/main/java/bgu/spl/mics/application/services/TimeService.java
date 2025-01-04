@@ -15,7 +15,7 @@ import java.time.Duration;
  */
 public class TimeService extends MicroService {
 
-    private int tickTime;
+    private int tickTimeInMillis;
     private int duration;
     private int currentTick;
 
@@ -27,7 +27,7 @@ public class TimeService extends MicroService {
      */
     public TimeService(int TickTime, int Duration) {
         super("Time Service");
-        this.tickTime = TickTime;
+        this.tickTimeInMillis = TickTime*1000;
         this.duration = Duration;
         currentTick = 1;
     }
@@ -51,7 +51,7 @@ public class TimeService extends MicroService {
         while(currentTick<=duration) { //While we haven't reached duration time, we will send TickBroadcast to all listeners.
             try {
                 // Wait for TickTime between two Tick Broadcast
-                Thread.sleep(Duration.ofSeconds(tickTime).toMillis());
+                Thread.sleep(tickTimeInMillis);
             } catch (InterruptedException e) {
                 System.err.println("Thread was interrupted during sleep: " + e.getMessage());
                 Thread.currentThread().interrupt(); //Restore the interrupted status

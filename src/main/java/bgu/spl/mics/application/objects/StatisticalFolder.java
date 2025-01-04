@@ -22,9 +22,9 @@ public class StatisticalFolder {
     private List<LiDarWorkerTracker> lidarList;
     private AtomicInteger sensorsInAction; //When equals 0, the FusionSlam should terminate
 
-    public StatisticalFolder(){
+    private StatisticalFolder(){
 
-        this.systemRuntime = new AtomicInteger(0);
+        this.systemRuntime = new AtomicInteger(1);
         this.numDetectedObjects = new AtomicInteger(0);
         this.numTrackedObjects = new AtomicInteger(0);
         this.numLandmarks = new AtomicInteger(0);
@@ -70,18 +70,23 @@ public class StatisticalFolder {
     public void incrementSystemRuntime(){
         systemRuntime.incrementAndGet();
     }
+
     public void addTrackedObjects(int amount){
         numTrackedObjects.addAndGet(amount);
     }
+
     public void addDetectedObjects(int amount){
         numDetectedObjects.addAndGet(amount);
     }
+
     public void incrementLandMarks(){
         numLandmarks.incrementAndGet();
     }
-    public void incrementSensorsInAction(){
-        sensorsInAction.incrementAndGet();
+
+    public void setSensorsInAction(int amount){
+        sensorsInAction = new AtomicInteger(amount);
     }
+
     public void decrementSensorsInAction(){
         sensorsInAction.decrementAndGet();
     }

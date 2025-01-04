@@ -70,10 +70,6 @@ public class FusionSlam {
         poses.add(pose);
     }
 
-    public void handleRegister() {
-        StatisticalFolder.getInstance().incrementSensorsInAction();
-        System.out.println("FusionSlam handled register event");
-    }
 
     public void handleTrackedObjects(TrackedObjectsEvent trackedObjectsEvent) {
         System.out.println("FusionSlam got tracked object event");
@@ -121,6 +117,7 @@ public class FusionSlam {
 
     public void handleTerminate() {
         StatisticalFolder.getInstance().decrementSensorsInAction();
+        System.out.println(StatisticalFolder.getInstance().getSensorsInAction());
     }
 
 
