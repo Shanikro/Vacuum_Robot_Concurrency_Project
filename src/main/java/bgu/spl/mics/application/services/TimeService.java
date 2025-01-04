@@ -42,31 +42,47 @@ public class TimeService extends MicroService {
 
         // Handle Terminated Broadcast from Slam
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
-            if(terminatedBroadcast.getSenderId().equals("Fusion Slam Service")) {
+            if (terminatedBroadcast.getSenderId().equals("Fusion Slam Service")) {
                 System.out.println(getName() + " terminated by " + terminatedBroadcast.getSenderId());
                 terminate();
             }
         });
 
-        while(currentTick<=duration) { //While we haven't reached duration time, we will send TickBroadcast to all listeners.
+        // Handle Crashed Broadcast
+        subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast -> {
+            System.out.println(getName() + " crashed by " + crashedBroadcast.getSenderId());
+            terminate();
+        });
+
+        //Tick loop
+        new Thread(() -> {
             try {
-                // Wait for TickTime between two Tick Broadcast
-                Thread.sleep(tickTimeInMillis);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
-                System.err.println("Thread was interrupted during sleep: " + e.getMessage());
-                Thread.currentThread().interrupt(); //Restore the interrupted status
-                break; //Exit the loop if the thread is interrupted
+                System.err.println("Time Service Thread was interrupted during first sleep: " + e.getMessage());
+                terminate();
+                return;
             }
-            System.out.println(getName() + " sends tick broadcast");
-            sendBroadcast(new TickBroadcast(getName(),currentTick));
-            currentTick++;
 
-            //Increase the SystemRunTime by 1
-            StatisticalFolder.getInstance().incrementSystemRuntime();
-        }
+            while (currentTick <= duration && !isTerminated()) { //While we haven't reached duration time, we will send TickBroadcast to all listeners.
+                try {
+                    sendBroadcast(new TickBroadcast(getName(), currentTick));
+                    System.out.println(getName() + " sends tick broadcast");
+                    currentTick++;
 
-        //In case we reached the duration time
-        sendBroadcast(new TerminatedBroadcast(getName()));
-        terminate();
+                    //Increase the SystemRunTime by 1
+                    StatisticalFolder.getInstance().incrementSystemRuntime();
+                    Thread.sleep(tickTimeInMillis);
+                } catch (InterruptedException e) {
+                    System.err.println("Time Service Thread was interrupted during sleep: " + e.getMessage());
+                    terminate();
+                    break;
+                }
+            }
+
+            //In case we reached the duration time
+            sendBroadcast(new TerminatedBroadcast(getName()));
+            terminate();
+        }).start();
     }
 }
