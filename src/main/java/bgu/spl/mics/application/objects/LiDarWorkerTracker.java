@@ -5,6 +5,7 @@ import bgu.spl.mics.application.messages.DetectObjectsEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -82,12 +83,15 @@ public class LiDarWorkerTracker {
             return trackedObjectsToSlam;
         }
 
-        for(TrackedObject o : lastTrackedObjects){
-            if(o.getTime() == currentTick - frequency) {
-                trackedObjectsToSlam.add(o); //Add this object to the list used by Fusion Slam
-                lastTrackedObjects.remove(o); //Remove the object from the last tracked object list of the lidar
+        Iterator<TrackedObject> iterator = lastTrackedObjects.iterator();
+        while (iterator.hasNext()) {
+            TrackedObject o = iterator.next();
+            if (o.getTime() == currentTick - frequency) {
+                trackedObjectsToSlam.add(o);
+                iterator.remove();
             }
         }
+
 
         //If we found corresponding trackedObjects
         if (!trackedObjectsToSlam.isEmpty()) {
