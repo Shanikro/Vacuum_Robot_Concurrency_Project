@@ -38,7 +38,7 @@ public class FusionSlamService extends MicroService {
      */
     @Override
     protected void initialize() {
-        System.out.println("FusionSlam " + getName() + " started");
+        System.out.println(getName() + " started");
 
         //Handle RegisterEvent
         subscribeEvent(RegisterEvent.class, event ->{

@@ -38,7 +38,7 @@ public class TimeService extends MicroService {
      */
     @Override
     protected void initialize() {
-        System.out.println("Sender " + getName() + " started");
+        System.out.println(getName() + " started");
 
         // Handle Terminated Broadcast from Slam
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
@@ -57,7 +57,7 @@ public class TimeService extends MicroService {
                 Thread.currentThread().interrupt(); //Restore the interrupted status
                 break; //Exit the loop if the thread is interrupted
             }
-            System.out.println("time sends tick broadcast");
+            System.out.println(getName() + " sends tick broadcast");
             sendBroadcast(new TickBroadcast(getName(),currentTick));
             currentTick++;
 

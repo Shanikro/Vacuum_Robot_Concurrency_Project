@@ -34,7 +34,7 @@ public class CameraService extends MicroService {
      */
     @Override
     protected void initialize() {
-        System.out.println("Camera " + getName() + " started");
+        System.out.println(getName() + " started");
 
         //Notify FusionSlam that new object registered
         sendEvent(new RegisterEvent(getName()));

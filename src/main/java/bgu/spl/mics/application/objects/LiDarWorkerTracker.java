@@ -76,7 +76,7 @@ public class LiDarWorkerTracker {
         currentTick = time;
 
         List<TrackedObject> trackedObjectsToSlam = new LinkedList<>();
-        for(TrackedObject o : lastTrackedObjects){ //TODO סנכרון
+        for(TrackedObject o : lastTrackedObjects){
             if(o.getTime() == currentTick - frequency) {
                 trackedObjectsToSlam.add(o); //Add this object to the list used by Fusion Slam
                 lastTrackedObjects.remove(o); //Remove the object from the last tracked object list of the lidar
@@ -114,7 +114,7 @@ public class LiDarWorkerTracker {
         int trackedTime = stampedDetectedObjects.getTime() + frequency; //Time to send as event
 
         List<TrackedObject> trackedObjectsToSlam = new LinkedList<>();
-        //TODO סנכרון
+
         for (DetectedObject detectedObject : stampedDetectedObjects.getDetectedObjects()) {
 
             List<CloudPoint> listCoordinates = getCloudPointList(detectedObject, stampedDetectedObjects.getTime()); //Create list of coordinates (cloud point) for the corresponding Object

@@ -1,8 +1,10 @@
 package bgu.spl.mics;
 
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  The class is the implementation of the MessageBus interface.
@@ -12,9 +14,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class MessageBusImpl implements MessageBus {
 
-	private final Map<MicroService, Queue<Message>> microServices;
-	private final Map<Class<? extends Broadcast>, Queue<MicroService>> broadcasts;
-	private final Map<Class<? extends Event<?>>, Queue<MicroService>> events;
+	private final Map<MicroService, BlockingQueue<Message>> microServices;
+	private final Map<Class<? extends Broadcast>, BlockingQueue<MicroService>> broadcasts;
+	private final Map<Class<? extends Event<?>>, BlockingQueue<MicroService>> events;
 
 	private final Map<Event<?>, Future<?>> eventFuture = new ConcurrentHashMap<>();
 
@@ -52,7 +54,7 @@ public class MessageBusImpl implements MessageBus {
 				events.get(type).add(m);
 		}
 		else{
-			events.put(type,new ConcurrentLinkedQueue<>());
+			events.put(type,new LinkedBlockingQueue<>());
 			events.get(type).add(m);
 		}
 	}
@@ -75,7 +77,7 @@ public class MessageBusImpl implements MessageBus {
 				broadcasts.get(type).add(m);
 		}
 		else{
-			broadcasts.put(type,new ConcurrentLinkedQueue<>());
+			broadcasts.put(type,new LinkedBlockingQueue<>());
 			broadcasts.get(type).add(m);
 		}
 	}
@@ -137,9 +139,9 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
 
-		Queue<MicroService> microServiceQueue = events.get(e.getClass());
+		BlockingQueue<MicroService> microServiceQueue = events.get(e.getClass());
 
-		if (microServiceQueue == null || microServiceQueue.isEmpty()) {
+		if (microServiceQueue == null || microServiceQueue.isEmpty()) { //TODO להוריד אם צריך
 			return null;
 		}
 		synchronized (microServiceQueue) {
@@ -166,7 +168,7 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public synchronized void register(MicroService m) {
 		if(!microServices.containsKey(m)){
-			microServices.put(m, new LinkedList<Message>());
+			microServices.put(m, new LinkedBlockingQueue<Message>());
 			System.out.println(m.getName() + " register microServices");
 		}
 	}

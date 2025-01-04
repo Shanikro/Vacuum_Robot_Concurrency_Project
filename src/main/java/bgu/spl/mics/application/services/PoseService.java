@@ -29,7 +29,7 @@ public class PoseService extends MicroService {
      */
     @Override
     protected void initialize() {
-        System.out.println("Pose " + getName() + " started");
+        System.out.println(getName() + " started");
 
         //Notify FusionSlam that new object registered
         sendEvent(new RegisterEvent(getName()));
@@ -54,9 +54,18 @@ public class PoseService extends MicroService {
 
         });
 
-        // Handle CrashedBroadcast
+        // Handle Terminated Broadcast
+        subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
+            if(terminatedBroadcast.getSenderId().equals("Fusion Slam Service")) {
+                System.out.println(getName() + " terminated by " + terminatedBroadcast.getSenderId());
+                terminate();
+            }
+        });
+
+        // Handle Crashed Broadcast
         subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
-           terminate();
+            System.out.println(getName() + " crashed by " + crashedBroadcast.getSenderId());
+            terminate();
         });
 
     }

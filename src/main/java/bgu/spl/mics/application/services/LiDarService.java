@@ -35,7 +35,7 @@ public class LiDarService extends MicroService {
      */
     @Override
     protected void initialize() {
-        System.out.println("LiDar " + getName() + " started");
+        System.out.println(getName() + " started");
 
         //Notify FusionSlam that new object registered
         sendEvent(new RegisterEvent(getName()));
@@ -44,8 +44,11 @@ public class LiDarService extends MicroService {
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
             List<TrackedObject> trackedObjectsToSlam = LiDar.handleTick(tick.getTime());
-            //In case the LiDAR is UP or DOWN
-            sendEventByStatus(trackedObjectsToSlam);
+
+            //In case the LiDAR is UP or DOWN and there is objects
+            //if(!trackedObjectsToSlam.isEmpty()) { //TODO הוספתי
+                sendEventByStatus(trackedObjectsToSlam);
+            //}
         });
 
         // Handle Detect Objects Event
