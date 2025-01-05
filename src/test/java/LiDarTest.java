@@ -56,6 +56,7 @@ public class LiDarTest {
         lidarWorker.handleTick(1);
         lidarWorker.handleTick(2);
         lidarWorker.handleTick(3);
+        lidarWorker.handleTick(4);
 
 
         assertEquals(STATUS.DOWN, lidarWorker.getStatus(), "LiDar status should be DOWN after finishing all objects");
