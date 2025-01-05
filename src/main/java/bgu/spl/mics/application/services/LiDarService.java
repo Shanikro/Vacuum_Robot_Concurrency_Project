@@ -37,48 +37,41 @@ public class LiDarService extends MicroService {
     protected void initialize() {
         System.out.println(getName() + " started");
 
-        //Notify FusionSlam that new object registered
-        sendEvent(new RegisterEvent(getName()));
-        System.out.println(getName() + " sent Register event");
-
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
             List<TrackedObject> trackedObjectsToSlam = LiDar.handleTick(tick.getTime());
 
             //In case the LiDAR is UP or DOWN and there is objects
-            //if(!trackedObjectsToSlam.isEmpty()) { //TODO הוספתי
-                sendEventByStatus(trackedObjectsToSlam);
-            //}
+            sendEventByStatus(trackedObjectsToSlam);
         });
 
         // Handle Detect Objects Event
         subscribeEvent(DetectObjectsEvent.class, detectObjectsevent ->{
-            System.out.println("LiDAR got Detect Objects Event");
+            System.out.println(getName() + " got Detect Objects Event");
             List<TrackedObject> trackedObjectsToSlam = LiDar.handleDetectObjects(detectObjectsevent);
 
             //In case of LiDar error
             if (LiDar.getStatus() == STATUS.ERROR) {
-                System.out.println("Sender " + getName() + " crashed!");
+                System.out.println(getName() + " crashed!");
                 sendBroadcast(new CrashedBroadcast(getName(),LiDar));
                 terminate();
             }
 
             //In case the LiDAR is UP or DOWN
             sendEventByStatus(trackedObjectsToSlam);
-
         });
 
         // Handle Terminated Broadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminatedBroadcast -> {
             if(terminatedBroadcast.getSenderId().equals("Fusion Slam Service")) {
-                System.out.println("LiDar " + LiDar.getId() + " terminated by " + terminatedBroadcast.getSenderId());
+                System.out.println(getName() + " terminated by " + terminatedBroadcast.getSenderId());
                 terminate();
             }
         });
 
         // Handle Crashed Broadcast
         subscribeBroadcast(CrashedBroadcast.class, crashedBroadcast ->{
-            System.out.println("LiDar " + LiDar.getId() + " crashed by " + crashedBroadcast.getSenderId());
+            System.out.println(getName() + " crashed by " + crashedBroadcast.getSenderId());
             terminate();
         });
 
@@ -86,15 +79,14 @@ public class LiDarService extends MicroService {
 
     private void sendEventByStatus(List<TrackedObject> trackedObjectsToSlam) {
 
-        if(LiDar.getStatus() == STATUS.UP) {
+        if(LiDar.getStatus() == STATUS.UP && !trackedObjectsToSlam.isEmpty()) {
             // Send event with detected objects
-            sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam)); //TODO לבדוק אם צריך לשמור את הבוליאן שמתקבל
+            sendEvent(new TrackedObjectsEvent(getName(), trackedObjectsToSlam));
             System.out.println(getName() + " sent Tracked Objects event");
         }
 
         //In case the camera shuts down
         else if (LiDar.getStatus()== STATUS.DOWN) {
-            System.out.println("Sender " + getName() + " terminated!");
             sendBroadcast(new TerminatedBroadcast(getName()));
             terminate();
         }

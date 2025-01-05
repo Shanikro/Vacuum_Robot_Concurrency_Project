@@ -61,12 +61,12 @@ public class GurionRockRunner {
             // Load TickTime and Duration
             int tickTime = config.get("TickTime").getAsInt();
             int duration = config.get("Duration").getAsInt();
-            System.out.println("TickTime: " + tickTime);
-            System.out.println("Duration: " + duration);
 
             MicroService poseService = new PoseService(new GPSIMU(0,poses));
 
             SimulationManager.startSimulation(tickTime, duration, cameraServices, LiDarServices, poseService);
+
+            System.out.println("Simulation has started!");
 
         } catch (IOException e) {
             e.printStackTrace();

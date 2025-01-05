@@ -68,8 +68,14 @@ public class Camera {
     public StampedDetectedObjects handleTick(int time){
 
         currentTick = time;
-
         StampedDetectedObjects detectedObjectsAtTime = null;
+
+        //In case that the camera finish
+        if(stampedObjectUntilFinish == 0){
+            setStatus(STATUS.DOWN);
+            return detectedObjectsAtTime;
+        }
+
         for(StampedDetectedObjects s : detectedObjectsList){
             if(s.getTime() == currentTick - frequency) {
                 detectedObjectsAtTime = s;
@@ -98,11 +104,6 @@ public class Camera {
                 //Update lastStampedDetectedObject for a case of error in the future
                 lastStampedDetectedObject = detectedObjectsAtTime;
             }
-        }
-
-        //In case that the camera finish
-        if(stampedObjectUntilFinish == 0){
-            setStatus(STATUS.DOWN);
         }
 
         return detectedObjectsAtTime;

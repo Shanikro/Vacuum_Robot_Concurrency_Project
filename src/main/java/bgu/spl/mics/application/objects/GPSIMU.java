@@ -20,24 +20,9 @@ public class GPSIMU {
         this.poseList = poseList;
     }
 
-    public int getCurrentTick() {
-        return currentTick;
-    }
 
     public STATUS getStatus() {
         return status;
-    }
-
-    public List<Pose> getPoseList() {
-        return poseList;
-    }
-
-    public void addPose(Pose pose){
-        poseList.add(pose);
-     }
-
-    public void setStatus(STATUS status) {
-        this.status = status;
     }
 
     public Pose handleTick(int time) {

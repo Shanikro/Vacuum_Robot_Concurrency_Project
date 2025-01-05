@@ -115,10 +115,10 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public void sendBroadcast(Broadcast b) {
-		Queue<MicroService> microServiceList = broadcasts.get(b.getClass());
-		if(microServiceList != null) {
+		BlockingQueue<MicroService> microServiceList = broadcasts.get(b.getClass());
+		if (microServiceList != null) {
 			for (MicroService m : microServiceList) {
-				addMsg(m, b);
+				addMsg(m, b); //Add the message to the register MicroService
 			}
 		}
 	}
@@ -141,13 +141,10 @@ public class MessageBusImpl implements MessageBus {
 
 		BlockingQueue<MicroService> microServiceQueue = events.get(e.getClass());
 
-		if (microServiceQueue == null || microServiceQueue.isEmpty()) { //TODO להוריד אם צריך
-			return null;
-		}
 		synchronized (microServiceQueue) {
-			MicroService MS = microServiceQueue.remove(); //Take the next Micro-service according to round-robin fashion.
-			addMsg(MS,e);
-			microServiceQueue.add(MS); //Returns the Micro-service according to round-robin fashion.
+			MicroService ms = microServiceQueue.poll(); //Take the next Micro-service according to round-robin fashion.
+			addMsg(ms, e);
+			microServiceQueue.add(ms); //Returns the Micro-service according to round-robin fashion.
 
 			Future<T> future = new Future<>(); //Create future for the event
 			eventFuture.put(e, future);
@@ -169,7 +166,7 @@ public class MessageBusImpl implements MessageBus {
 	public synchronized void register(MicroService m) {
 		if(!microServices.containsKey(m)){
 			microServices.put(m, new LinkedBlockingQueue<Message>());
-			System.out.println(m.getName() + " register microServices");
+			System.out.println(m.getName() + " register!");
 		}
 	}
 
@@ -186,17 +183,19 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void unregister(MicroService m) {
 
-		microServices.remove(m); //Remove from MicroServices Map
+		synchronized (microServices) {
+			microServices.remove(m); //Remove from MicroServices Map
+		}
 
-		for(Queue<MicroService> msList : broadcasts.values()){ //Remove from Broadcasts Map, if in
-			synchronized (msList){
-				msList.remove(m);
+		synchronized (broadcasts) {
+			for (BlockingQueue<MicroService> msList : broadcasts.values()) {
+				msList.remove(m); //Remove from Broadcasts Map
 			}
 		}
 
-		for(Queue<MicroService> msQueue : events.values()){ //Remove from Events Map, if in
-			synchronized (msQueue){
-				msQueue.remove(m);
+		synchronized (events) {
+			for (BlockingQueue<MicroService> msQueue : events.values()) {
+				msQueue.remove(m); //Remove from Events Map
 			}
 		}
 	}
@@ -213,16 +212,12 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		synchronized (microServices) {
-			while (microServices.get(m).isEmpty()) {
-				try {
-					microServices.wait();
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-			}
-			return microServices.get(m).remove();
+
+		BlockingQueue<Message> queue = microServices.get(m);
+		if (queue == null) { //If any Micro Service not register yet
+			throw new IllegalStateException("MicroService is not registered");
 		}
+		return queue.take();
 	}
 
 	private void addMsg(MicroService m, Message msg) {

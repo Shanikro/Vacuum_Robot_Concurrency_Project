@@ -54,6 +54,7 @@ public class CameraTest {
         camera.handleTick(1);
         camera.handleTick(2);
         camera.handleTick(3);
+        camera.handleTick(4);
 
         assertEquals(STATUS.DOWN, camera.getStatus(), "Camera status should be DOWN after processing all objects");
     }

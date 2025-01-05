@@ -28,7 +28,7 @@ public class MessageBusTest {
     @Test
     public void testRegisterAndUnregister() {
         messageBus.unregister(m1);
-        assertThrows(NullPointerException.class, () -> messageBus.awaitMessage(m1));
+        assertThrows(IllegalStateException.class, () -> messageBus.awaitMessage(m1));
     }
 
     @Test

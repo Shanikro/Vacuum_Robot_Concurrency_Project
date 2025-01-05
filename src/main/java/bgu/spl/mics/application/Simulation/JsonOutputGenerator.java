@@ -34,19 +34,10 @@ public class JsonOutputGenerator {
         try (FileWriter writer = new FileWriter("output_file.json")) {
             // Serialize Java objects to JSON file
             gson.toJson(this, writer);
-            System.out.println("FusionSlam data has been written to output_file.json");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-    public void set(int i, int i1, int i2, int i3) { //TODO:למחוק כשנסיים
-        systemRuntime = i;
-        numDetectedObjects = i1;
-        numTrackedObjects = i2;
-        numLandmarks = i3;
-    }
-
 
     private Map<String, LandMark> makeAsMap(List<LandMark> list) {
         Map<String, LandMark> output = new HashMap<>();

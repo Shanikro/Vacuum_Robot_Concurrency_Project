@@ -40,12 +40,6 @@ public class FusionSlamService extends MicroService {
     protected void initialize() {
         System.out.println(getName() + " started");
 
-        //Handle RegisterEvent
-        subscribeEvent(RegisterEvent.class, event ->{
-            fusionSlam.handleRegister();
-            System.out.println(getName() + " get Register Event from " + event.getSenderName());
-        });
-
         //Handle TrackedObjectsEvent
         subscribeEvent(TrackedObjectsEvent.class, trackedObjectsEvent ->{
             fusionSlam.handleTrackedObjects(trackedObjectsEvent);
@@ -55,7 +49,7 @@ public class FusionSlamService extends MicroService {
         //Handle PoseEvent
         subscribeEvent(PoseEvent.class, poseEvent -> {
             fusionSlam.handlePose(poseEvent);
-            System.out.println(getName() + " get Pose Event.");
+            System.out.println(getName() + " got Pose Event");
         });
 
         //Handle TerminatedBroadcast
@@ -71,7 +65,7 @@ public class FusionSlamService extends MicroService {
             else {
                 fusionSlam.handleTerminate();
                 if(StatisticalFolder.getInstance().getSensorsInAction() == 0){ //If all the objects have no more data , finish
-                    System.out.println(getName() + " terminated!");
+                    sendBroadcast(new TerminatedBroadcast(getName()));
                     fusionSlam.makeOutputJson();
                     terminate();
                 }
